@@ -12,6 +12,18 @@ class ptta2 {
         int* psf;
         
     public:
+        const int fs = 128*1000;
+        const int bitrate = 400;
+        const int angmode = M_PI/3;
+        float tcarrier = 0.16;
+        const int syncpattern[24] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,0,1,1,1,1};
+        int usermsglength;
+        int timelenght;
+
+        //methods
+        //
+        ptta2(int msglentype);        
+
         inline ~ptta2()
         {
             delete this->psf;
@@ -20,17 +32,12 @@ class ptta2 {
         {
             return usermsg;
         }
-        const int fs = 128*1000;
-        const int bitrate = 400;
-        const int angmode = M_PI/3;
-        float tCarrier = 0.16;
-        const int syncpattern[24] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,0,1,1,1,1};
-        int usermsglength;
-        int timelenght;
-
-        //methods
-        //
-        ptta2(int msglentype);        
+        inline int get_usermsglength(){
+            return 24+32*msglentype;
+        }
+        inline int get_timelength()
+        {
+            value = tcarrier+size(psf)/fs      }
 };
 
 ptta2::ptta2(int msglentype)
