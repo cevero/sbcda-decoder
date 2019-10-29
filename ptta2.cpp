@@ -18,7 +18,7 @@ class ptta2 {
         float tcarrier = 0.16;
         const int syncpattern[24] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,0,1,1,1,1};
         int usermsglength;
-        int timelenght;
+        int timelength;
 
         //methods
         //
@@ -28,16 +28,18 @@ class ptta2 {
         {
             delete this->psf;
         }
+
         inline int getmsg()
         {
             return usermsg;
         }
+
         inline int get_usermsglength(){
             return 24+32*msglentype;
         }
-        inline int get_timelength()
-        {
-            value = tcarrier+size(psf)/fs      }
+
+        int get_timelength();
+
 };
 
 ptta2::ptta2(int msglentype)
@@ -56,6 +58,7 @@ ptta2::ptta2(int msglentype)
     plusbetasmpl+=plusbetasmpl+(0.5>=(auxplusbetasmpl/plusbetasmpl));
     
     this->psf = new int[plusbetasmpl*2+1];
+    for(int i=0;i<plusbetasmpl*2+1;i++)this->psf[i]=0;
     int idx = 0;
     for(int n=-1*plusbetasmpl;n<plusbetasmpl;n++)
     {
@@ -67,13 +70,19 @@ ptta2::ptta2(int msglentype)
     }
 }
 
+int ptta2::get_timelength()
+{
+    int pskrate = 2*this->bitrate;
+    float beta = 0.125;
+    float a = ((1+beta)/2*(this->fs/pskrate));
+    int value = 24+get_usermsglength()/this->bitrate+this->tcarrier+(a+(0.5>=a))/this->fs;
+    return value;
+}
 
+//
 int main()
-
 {
     ptta2 teste(100);
-    cout<<"O Tamanho da mensagem eh: "<<teste.fs<<endl;
+    cout<<"O Tamanho da mensagem eh: "<<teste.get_timelength()<<endl;
     return 0;
-
-
 }
