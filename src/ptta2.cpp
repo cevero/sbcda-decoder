@@ -2,6 +2,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
+#include "ptta2.hpp"
 using namespace std;
 
 
