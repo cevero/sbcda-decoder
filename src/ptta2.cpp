@@ -1,10 +1,8 @@
 #include <iostream>
-#include <math.h>
-#include <stdlib.h>
-#include <time.h>
+#include <cmath>
+#include <ctime>
 #include "ptta2.hpp"
 using namespace std;
-
 
 Ptta2::Ptta2(int msglentype)
 {
@@ -46,7 +44,63 @@ int Ptta2::get_timelength()
                                                 (a+(0.5>=a))/this->fs;
     return value;
 }
+/*
+    function value = digitalMsg(obj)
+    % Return the Ptt-A2 Digital Message.
+    % Overall bits entering the modulator, as defined in the spec.
+      value = [obj.synchPattern obj.userMsg];
+    end
+    
+    function obj = genRandUserMsg(obj)
+      % Randomize User Message (userMsg)
 
+      % convert mLenCodeList in a bit vector
+      aux = dec2bin(obj.msgLenType-1, 3) == '1';
+      
+      % generate the parity bit
+      parity = mod(sum(aux), 2);
+      
+      % append the parity bit to the bit vector
+      mLenCodeBitVec = [aux parity];
+      
+      % generate random ID number and User Data
+      randomDataBitVec = round(rand(1,obj.userMsgLength-4));
+      
+      % full user message generation
+      obj.userMsg = [mLenCodeBitVec randomDataBitVec];
+    end
+    
+    
+    function pttSignal = signalGen(obj)
+      % Generate the PTT Signal
+      
+      % Append synchPattern to userMsg to create the full tx bit vector
+      bitVec =  [obj.synchPattern obj.userMsg];
+      
+      % apply biphase_L coding 1-->[+1 -1], 0-->[-1 +1];
+      symbVec0 = 2*bitVec-1;
+      symbVec1 = [symbVec0 ; -symbVec0];
+      symblVec2 = reshape(symbVec1, 1, []);
+      
+      % add zeros for Pure Carrier period
+      symblVec = [zeros(1, obj.tCarrier*2*obj.bitRate) symblVec2];
+      
+      % constelation mapping
+      symbVec = exp(1j*obj.angMod*symblVec);
+      
+      % upsampling according to ratio between sample frequency and 2*BitRate.
+      upSmplRate = obj.fs/(2*obj.bitRate);
+      pttSignal = upsample(symbVec, upSmplRate);
+      
+      % apply pulse shapping filter
+      % rectangular shape filter is used
+      % rec = ones(1,upSmplRate);
+      % pttSignal = filter(rec, 1, pttSignal);
+      
+      % trapezoidal shape filter
+      pttSignal = conv(obj.psf, pttSignal);
+    end
+*/
 int main()
 {
     srand(time(NULL));
@@ -57,6 +111,6 @@ int main()
         cout<<" "<<teste.syncpattern[i];
     }
     
-    cout<<"\nprinta essa merda: "<<teste.get_usermsglength()<<endl;
+    cout<<"\nusermsglength: "<<teste.get_usermsglength()<<endl;
     return 0;
 }

@@ -36,9 +36,7 @@ class Ptta2 {
         {
             return usermsg;
         }
-        inline int gettypemsg()
-        {
-        }
+
         inline int get_usermsglength(){
             return 24+32*msglentype;
         }
