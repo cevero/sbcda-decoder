@@ -16,8 +16,8 @@ classdef PttA2
     tCarrier        = 0.16;        % pure carrier period time length
     % sync bit pattern
     synchPattern    = [1 1 1 1 1 1 1 1 ...  
-      1 1 1 1 1 1 1 0 ...
-      0 0 1 0 1 1 1 1];
+                       1 1 1 1 1 1 1 0 ...
+                       0 0 1 0 1 1 1 1];
   end
   properties (Dependent)
     userMsgLength;                 % User Mensage Length in bits

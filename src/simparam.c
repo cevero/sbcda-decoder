@@ -1,11 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <cmath>
-#include <array>
-#include <list>
-#include <string>
-#include "ptta2.hpp"
-using namespace std;
+#include <math.h>
+#include "ptta2.h"
 
 class SimParam
 {

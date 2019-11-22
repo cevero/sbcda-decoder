@@ -1,13 +1,13 @@
-#include <iostream>
-#include <cmath>
-#include <ctime>
-#include "ptta2.hpp"
-using namespace std;
+#include <math.h>
+#include "ptta2.h"
 
 Ptta2::Ptta2(int msglentype)
 {
-    if (msglentype==0)cout<<"Error: msgLenType invalid\n";
-    else this->msglentype = msglentype;
+    if (msglentype==0)
+        //cout<<"Error: msgLenType invalid\n";
+        throw(1);
+    else
+        this->msglentype = msglentype;
 
     // Initalize User Message randomly
     //obj = obj.genRandUserMsg;
@@ -22,7 +22,8 @@ Ptta2::Ptta2(int msglentype)
     int plusbetasmpl = round((1+beta)/2*(this->fs/pskrate));
     
     this->psf = new int[plusbetasmpl*2+1];
-    for(int i=0;i<plusbetasmpl*2+1;i++)this->psf[i]=0;
+    for (int i=0;i<plusbetasmpl*2+1;i++)
+        this->psf[i]=0;
     int idx = 0;
 
     for(int n=-1*plusbetasmpl;n<plusbetasmpl;n++)
@@ -101,16 +102,3 @@ int Ptta2::get_timelength()
       pttSignal = conv(obj.psf, pttSignal);
     end
 */
-int main()
-{
-    srand(time(NULL));
-
-    Ptta2 teste(rand()%8+1);
-
-    for (int i = 0; i < 24; i++) {
-        cout<<" "<<teste.syncpattern[i];
-    }
-    
-    cout<<"\nusermsglength: "<<teste.get_usermsglength()<<endl;
-    return 0;
-}
