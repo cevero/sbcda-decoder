@@ -1,6 +1,10 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <complex.h>
 #include "simparam.h"
 #include "ptta2.h"
-#include <math.h>
 
 //%% STEP 1
 //% Generate an input signal of 10 sec with 100 PTT signals with .6 second
@@ -8,10 +12,42 @@
 //
 //% create a SimParam object
 
-int nptt = 50;
-int worstCNO = maxPwrDbN0 - dynRangeDb;
-int typeList[nPtt];
-int usrMsgLenCode[nPtt];
+simparam_t init_simparam(int nptt);
+ptta2_t init_ptta2(int nptt);
+
+int main(int argc, const char *argv[])
+{
+    /*int worstCNO = maxPwrDbN0 - dynRangeDb;*/
+    /*int typeList[nPtt];*/
+    /*int usrMsgLenCode[nPtt];*/
+    FILE *fp;
+    char * line = NULL;
+    size_t len = 0;
+    ssize_t read;
+
+    fp = fopen("../matlab/inputSeq.txt", "r");
+    if (fp == NULL)
+        exit(EXIT_FAILURE);
+
+    while ((read = getline(&line, &len, fp)) != -1) {
+        printf("Retrieved line of length %zu:\n", read);
+        printf("%s", line);
+    }
+
+    fclose(fp);
+
+    int nptt = 50;
+    simparam_t simparam = init_simparam(nptt);
+    printf("Thank you, but I'm not done yet!\n"); 
+    printf("%d\n",simparam.fullScaleAmp);
+    /*for (int j = 0; j < nptt; j++) {*/
+        /*for (int i = 0; i < 24; i++) {*/
+            /*printf("%d, ", simparam.pttList[j].syncpattern[i]);*/
+        /*}*/
+        /*printf("\n");*/
+    /*}*/
+    return 0;
+}
 
 simparam_t init_simparam(int nptt)
 {
@@ -39,13 +75,18 @@ simparam_t init_simparam(int nptt)
 
     for (int i = 0; i < nptt; i++) {
        simparam.typeList[i]=2;
-       simparam.usrMsgLenCode[i]=8;
+       simparam.userMsgLenList[i]=8;
     }
 
     simparam.pttList = malloc(sizeof(ptta2_t)*nptt);
+    for (int i = 0; i < nptt; i++) {
+        simparam.pttList[i] = init_ptta2(nptt);
+    }
+
+    return simparam;
 }
 
-ptta2_t init_ptta2()
+ptta2_t init_ptta2(int nptt)
 {
     ptta2_t ptta2;
     ptta2.msglentype = 8;
@@ -54,40 +95,15 @@ ptta2_t init_ptta2()
     ptta2.angmode = 1.0472; // modution angle in rad (pi/3)
     ptta2.tcarrier = 0.16;      // pure carrier period time length
     // sync bit pattern
-    ptta2.syncpattern[24] = {1,1,1,1,1,1,1,1,1,1,1,1,
+    int syncpattern[24] = {1,1,1,1,1,1,1,1,1,1,1,1,
                              1,1,1,0,0,0,1,0,1,1,1,1};
-    ptta2.usermsglength = 24+32*ptta2.msgentype; // User Message Length in bits
+    memcpy(ptta2.syncpattern, syncpattern, sizeof(syncpattern));
+    ptta2.usermsglength = 24+32*ptta2.msglentype; // User Message Length in bits
     ptta2.timelength;     // signal time length in seconds
 
     ptta2.usermsg = malloc(sizeof(float)*nptt);
-    ptta2.psf;
+    ptta2.psf = malloc(sizeof(float)*nptt);
+
+    return ptta2;
 }
-
-SimParam param(nPtt, tSim, typeList, usrMsgLenCode);
-param = SimParam(nPtt, tSim, typeList, usrMsgLenCode);
-param.maxPwrDbN0 = maxPwrDbN0;
-param.pwrDbN0List = maxPwrDbN0-dynRangeDb*rand(1,param.nPtt);
-
-for (int i = 0; i < nPtt; i++) {
-    param.freqHzList.push_back((rand()%1000/1000)*60e3-30e3);
-    param.hzPerSecList.push_back((rand()%1000/1000)*240-120);
-    param.timeList.push_back((rand()%1000/1000)*(tSim-1));
-}
-param.timeList.sort();
-
-//% Generate the input signal
-float inputGain = 10^-((param.peakPwrDbN0+param.n0DbFs)/20);
-PttA2 inputSignal = round(inputGain*signalGen(param));
-
-//%% STEP 2
-//% Break the input signal in windows of 1280 samples
-//
-//% compute number of windows
-int nWindow = ceil(sizeof(inputSignal)/sizeof(PttA2)/1280);
-//% adjust input signal length to a multiple of 1280 
-nSmplToAdd = nWindow*1280 - length(inputSignal);
-inputSignalExt = [inputSignal zeros(1, nSmplToAdd)];
-//% create array of windows
-inputWindArray = reshape(inputSignalExt, 1280, nWindow).';
-
 

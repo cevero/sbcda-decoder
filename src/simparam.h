@@ -1,5 +1,6 @@
 #ifndef SIMPARAM_H
 #define SIMPARAM_H
+#include "ptta2.h"
 
 typedef struct simparam_t{
     float noDbFs;
@@ -22,7 +23,7 @@ typedef struct simparam_t{
     int *typeList;
     int *userMsgLenList;
 
-    ptta2 *pttList;
+    ptta2_t *pttList;
 
 } simparam_t;
 
