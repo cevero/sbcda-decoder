@@ -41,6 +41,8 @@ int main(int argc, const char *argv[])
         strcpy(line_buffer,line);
         z[iter] = line_to_complex(line_buffer);
         iter++;
+        printf(line);
+        printf("\n");
         printf("%.2f%+.2fi\n", creal(z[iter]), cimag(z[iter]));
     }
 
