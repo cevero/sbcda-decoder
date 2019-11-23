@@ -6,6 +6,8 @@
 #include "simparam.h"
 #include "ptta2.h"
 
+#define DEBUG
+
 //%% STEP 1
 //% Generate an input signal of 10 sec with 100 PTT signals with .6 second
 //% each and without conflic between them.
@@ -40,10 +42,10 @@ int main(int argc, const char *argv[])
         }
         strcpy(line_buffer,line);
         z[iter] = line_to_complex(line_buffer);
-        iter++;
-        printf(line);
-        printf("\n");
+        #ifdef DEBUG
         printf("%.2f%+.2fi\n", creal(z[iter]), cimag(z[iter]));
+        #endif
+        iter++;
     }
 
     fclose(fp);
@@ -51,7 +53,6 @@ int main(int argc, const char *argv[])
     int nptt = 50;
     simparam_t simparam = init_simparam(nptt);
     printf("Thank you, but I'm not done yet!\n"); 
-    printf("%d\n",simparam.fullScaleAmp);
     /*for (int j = 0; j < nptt; j++) {*/
         /*for (int i = 0; i < 24; i++) {*/
             /*printf("%d, ", simparam.pttList[j].syncpattern[i]);*/
