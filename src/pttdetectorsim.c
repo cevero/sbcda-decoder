@@ -14,6 +14,7 @@
 
 simparam_t init_simparam(int nptt);
 ptta2_t init_ptta2(int nptt);
+float complex line_to_complex(char *str);
 
 int main(int argc, const char *argv[])
 {
@@ -24,14 +25,23 @@ int main(int argc, const char *argv[])
     char * line = NULL;
     size_t len = 0;
     ssize_t read;
+    int complex z[1280];
 
     fp = fopen("../matlab/inputSeq.txt", "r");
     if (fp == NULL)
         exit(EXIT_FAILURE);
 
+    int iter = -1;
+    char line_buffer[20];
     while ((read = getline(&line, &len, fp)) != -1) {
-        printf("Retrieved line of length %zu:\n", read);
-        printf("%s", line);
+        if (iter == -1) {
+            iter++;
+            continue;
+        }
+        strcpy(line_buffer,line);
+        z[iter] = line_to_complex(line_buffer);
+        iter++;
+        printf("%.2f%+.2fi\n", creal(z[iter]), cimag(z[iter]));
     }
 
     fclose(fp);
@@ -47,6 +57,21 @@ int main(int argc, const char *argv[])
         /*printf("\n");*/
     /*}*/
     return 0;
+}
+
+float complex line_to_complex(char *str)
+{
+	char delim[] = " ";
+
+    float real, imag;
+
+	char *ptr = strtok(str, delim);
+
+    real = atof(ptr);
+    ptr = strtok(NULL, delim);
+    imag = atof(ptr);
+
+    return real+imag*I;
 }
 
 simparam_t init_simparam(int nptt)
@@ -96,7 +121,7 @@ ptta2_t init_ptta2(int nptt)
     ptta2.tcarrier = 0.16;      // pure carrier period time length
     // sync bit pattern
     int syncpattern[24] = {1,1,1,1,1,1,1,1,1,1,1,1,
-                             1,1,1,0,0,0,1,0,1,1,1,1};
+                           1,1,1,0,0,0,1,0,1,1,1,1};
     memcpy(ptta2.syncpattern, syncpattern, sizeof(syncpattern));
     ptta2.usermsglength = 24+32*ptta2.msglentype; // User Message Length in bits
     ptta2.timelength;     // signal time length in seconds
