@@ -1,15 +1,20 @@
 #include "detect_loop.h"
 #define N	2048
-uint32_t DDS_Detection_Loop(signal) {
+
+#include <complex.h>
+#include "../lib/ufft/fft.h"
+uint32_t DDS_Detection_Loop(int complex*signal) {
 
 	int32_t i, currIdx = 0, lower_limit = 0, upper_limit = 0;
 	uint8_t ret_value = DDS_INSERT_FREQ_NONE, aux_abs, isInPrevIdx;
 	uint32_t peakAmp = 1, peakIdx = 0, currAmp = 0, iPass=0, peakPos, iPrevIdx,
              insertedFreqs[DDS_NUMBER_OF_DECODERS];
+    int mask[N];
+        
 
 	uint32_t tmp0;
 	uint8_t nPass=0, assigned_decoder = 0;
-	DDS_PassSet_Typedef * passSet;
+	DDS_PassSet_Typedef * passSet; //save the window of signal in freq
 	DDS_FreqsRecord_Typedef DDS_PTT_DP_LIST[DDS_NUMBER_OF_DECODERS];
 
 	/*Number_of_detected_indexes()
@@ -18,13 +23,15 @@ uint32_t DDS_Detection_Loop(signal) {
 	* through the equation: f = idx*fs/L, where fs is sampling frequency and
 	* M is the lentgh of FFT.
 	*/
+
 	//TODO resetPassSet();
-	ufft(signal,N);
-	calc_mask();
+
+	fft(signal,N);
+	calc_mask(mask);
 	for(i = 0; i<N; i++){
-		if(signal(i)>mask(i)){
-			passSet->passIdx = i;
-			passSet->passIdx = signal(i);
+		if(abs(signal[i])>mask[i]){
+			passSet->passIdx[nPass] = i;
+			passSet->passAmp[nPass] = abs(signal[i]);
 			nPass++;
 		}
 	}
@@ -35,6 +42,7 @@ uint32_t DDS_Detection_Loop(signal) {
 
 		//Loop for find decoder free
 		for (i = 0; i < DDS_NUMBER_OF_DECODERS; i++){
+
 			if(DDS_PTT_DP_LIST[i].detect_state==FREQ_NONE){
 				*assigned_decoder=i;
 				break;
@@ -67,13 +75,7 @@ uint32_t DDS_Detection_Loop(signal) {
 					peakAmp = currAmp;
 					peakIdx = currIdx;
 					peakPos = iPass;
-				} else{
-						/*
-					* FREQ_DETECTED_ONCE;
-					* DDS_PTT_DP_LIST[*assigned_decoder].detect_state 
-                    * = DDS_INSERT_FREQ_NONE;
-					*/
-					}
+				} 
 			}
 			iPass++;
 		}
@@ -106,9 +108,14 @@ uint32_t DDS_Detection_Loop(signal) {
 
 
 //mask
-void calc_mask(*mask){
+void calc_mask(int*mask){
 	uint32_t hat_f, hat_a;
 	
+
+    for (int i = 0; i < 2048; i++) {
+       mask[i]=0; 
+
+    }
 	for (i = 0; i < DDS_NUMBER_OF_DECODERS; i++){
 		if(DDS_PTT_DP_LIST[i].detect_state!= DECOD_FREE){
 			hat_f = DDS_PTT_DP_LIST[i].freq_idx;
@@ -132,3 +139,10 @@ void calc_mask(*mask){
 		}
 	}
 }
+
+
+
+
+
+
+

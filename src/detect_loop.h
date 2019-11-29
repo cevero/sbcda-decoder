@@ -26,3 +26,4 @@ typedef enum {
 #define TEST_SIGN_BIT(val, nbits)				((val & (0x00000001<<(nbits-1)))!=0)
 #define DDS_FREQ_NUMBER_OF_BITS									11
 #define DDS_NUMBER_OF_DECODERS									12
+#define DDS_INSERT_FREQ_NEW 1

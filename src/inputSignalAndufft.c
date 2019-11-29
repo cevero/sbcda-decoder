@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 #include <complex.h>
-#include "fft.h"
+#include "../lib/fft.h"
 //#include "ift.h"
 #define NUMBER_OF_SAMPLES 64000
 
