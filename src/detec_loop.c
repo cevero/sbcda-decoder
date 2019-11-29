@@ -4,7 +4,8 @@ uint32_t DDS_Detection_Loop(signal) {
 
 	int32_t i, currIdx = 0, lower_limit = 0, upper_limit = 0;
 	uint8_t ret_value = DDS_INSERT_FREQ_NONE, aux_abs, isInPrevIdx;
-	uint32_t peakAmp = 1, peakIdx = 0, currAmp = 0, iPass=0, peakPos, iPrevIdx, insertedFreqs[DDS_NUMBER_OF_DECODERS];
+	uint32_t peakAmp = 1, peakIdx = 0, currAmp = 0, iPass=0, peakPos, iPrevIdx,
+             insertedFreqs[DDS_NUMBER_OF_DECODERS];
 
 	uint32_t tmp0;
 	uint8_t nPass=0, assigned_decoder = 0;
@@ -51,7 +52,8 @@ uint32_t DDS_Detection_Loop(signal) {
 			//first amplitude test, find the highest amplitude signal.
 			if (currAmp > peakAmp) {
 				isInPrevIdx = 0;
-				//Test if signal is present in two consecutive windows (double detection criteria)
+				//Test if signal is present in two consecutive windows
+                //(double detection criteria)
 				//The loop scan the signal vector of the previous window 
 				for (iPrevIdx = 0; iPrevIdx<nPrevIdx; iPrevIdx++){
 					if(currIdx==prevIdx[iPrevIdx]){ //doubleDETECTION
@@ -68,7 +70,8 @@ uint32_t DDS_Detection_Loop(signal) {
 				} else{
 						/*
 					* FREQ_DETECTED_ONCE;
-					* DDS_PTT_DP_LIST[*assigned_decoder].detect_state = DDS_INSERT_FREQ_NONE;
+					* DDS_PTT_DP_LIST[*assigned_decoder].detect_state 
+                    * = DDS_INSERT_FREQ_NONE;
 					*/
 					}
 			}
@@ -78,7 +81,8 @@ uint32_t DDS_Detection_Loop(signal) {
 		* Update Detected PttDpList
 */
 		if(peakAmp>0){
-			DDS_PTT_DP_LIST[*assigned_decoder].freq_idx = passSet->passIdx[peakPos];
+			DDS_PTT_DP_LIST[*assigned_decoder].freq_idx
+                = passSet->passIdx[peakPos];
 			DDS_PTT_DP_LIST[*assigned_decoder].freq_amp = peakAmp;
 			//Update passSet
 			passSet->passAmp[peakPos]=0;
@@ -114,7 +118,8 @@ void calc_mask(*mask){
 			hat_f_right = (hat_f>2047-52)? (hat_f+52-2047):hat_f;
 
 			for (i = hat_f_left-52; i <= hat_f_right+52; i++){
-				if(abs(i-hat_f)<=26 && mask(i)<2*hat_a){ //represents a band of 3.2kHz
+				if(abs(i-hat_f)<=26 && mask(i)<2*hat_a){
+                    //represents a band of 3.2kHz
 					mask(i) = 2*hat_a;
 				}else if(abs(i-hat_f)<=38 && mask(i)<hat_a/6){ 
 					mask(i) = hat_a/6;
