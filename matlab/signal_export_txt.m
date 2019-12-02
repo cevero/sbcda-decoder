@@ -2,7 +2,7 @@
 
 % Create SimParm object
 nPtt = 2;               % two PTT signals
-tSim = 1.5;    % in seconds (this parameter will be overwrite)
+tSim = 1.5;             % in seconds (this parameter will be overwrite)
 typeList = [2 2];       % all signals are PTT-A2
 userMsgLenCode = [1 1]; % both signals has minimal message length
 param = SimParam(nPtt, tSim, typeList, userMsgLenCode);

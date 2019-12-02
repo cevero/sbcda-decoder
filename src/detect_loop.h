@@ -1,6 +1,8 @@
 #ifndef DETECT_LOOP_H
 #define DETECT_LOOP_H
 
+#include <complex.h>
+
 #define CONVERT_TO_32BIT_SIGNED(val, nbits)	(int) (val | (0xFFFFFFFF<<(nbits-1)))
 #define TEST_SIGN_BIT(val, nbits)				((val & (0x00000001<<(nbits-1)))!=0)
 #define DDS_FREQ_NUMBER_OF_BITS									11
@@ -17,6 +19,7 @@ typedef struct {
 	unsigned int freq_amp;
 	unsigned int detect_state;
 } DDS_FreqsRecord_Typedef;
+
 /*
 *	DDS_PassSet_Typedef assists in this processing
 */
@@ -32,5 +35,7 @@ typedef enum {
 	FREQ_DECODING
 } DDS_FreqsState_Typedef;
 
+void calc_mask(int*mask,DDS_FreqsRecord_Typedef DDS_PTT_DP_LIST[DDS_NUMBER_OF_DECODERS]);
+unsigned int DDS_Detection_Loop(float complex*signal);
 
 #endif
