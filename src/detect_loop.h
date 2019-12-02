@@ -1,14 +1,13 @@
-#include <stdlib.h>
-#include <math.h>
-#include <stdio.h>
-#include <complex.h>
-#include "../lib/ufft/fft.h"
-#define CONVERT_TO_32BIT_SIGNED(val, nbits)		(int) (val | (0xFFFFFFFF<<(nbits-1)))
+#ifndef DETECT_LOOP_H
+#define DETECT_LOOP_H
+
+#define CONVERT_TO_32BIT_SIGNED(val, nbits)	(int) (val | (0xFFFFFFFF<<(nbits-1)))
 #define TEST_SIGN_BIT(val, nbits)				((val & (0x00000001<<(nbits-1)))!=0)
 #define DDS_FREQ_NUMBER_OF_BITS									11
 #define DDS_NUMBER_OF_DECODERS									12
 #define DDS_INSERT_FREQ_NEW 1
-#define N 2048
+#define N_SAMPLE (2048)
+
 
 /*	DDS_FreqsRecord_Typedef will be passed to the next processing
 */
@@ -22,8 +21,8 @@ typedef struct {
 *	DDS_PassSet_Typedef assists in this processing
 */
 typedef struct {
-	unsigned int passIdx[N/DDS_NUMBER_OF_DECODERS];
-	unsigned int passAmp[N/DDS_NUMBER_OF_DECODERS];
+	unsigned int passIdx[N_SAMPLE/DDS_NUMBER_OF_DECODERS];
+	unsigned int passAmp[N_SAMPLE/DDS_NUMBER_OF_DECODERS];
 } DDS_PassSet_Typedef;
 
 typedef enum {
@@ -34,3 +33,4 @@ typedef enum {
 } DDS_FreqsState_Typedef;
 
 
+#endif

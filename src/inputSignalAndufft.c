@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 #include <complex.h>
-#include "../lib/fft.h"
+#include "fft.h"
 //#include "ift.h"
 #define NUMBER_OF_SAMPLES 64000
 
@@ -33,13 +33,13 @@ int main(int argc, char *argv[]){
 	*/
 
 	size_t W = 1280; // Window process
-	size_t ZP = 2048-1280; //Zero padding
-	size_t N = 2048;
+	size_t ZP = N_SAMPLE-1280; //Zero padding
+	size_t N = N_SAMPLE;
 	int n;
 
 	float complex vector[N];
 
-	while(){
+	while(1){
 
 		for(n = 0; n < N; n++) {
 			if(n<W){
@@ -49,8 +49,7 @@ int main(int argc, char *argv[]){
 			}
 		}
 
-		fft(vector,N);
-		detect_loop();
+		DDS_Detection_Loop(vector);
 	}
 
 /*	Debug propose

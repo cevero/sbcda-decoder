@@ -1,14 +1,18 @@
 #include "detect_loop.h"
-
-unsigned int prevIdx[N/DDS_NUMBER_OF_DECODERS];
+#include <stdlib.h>
+#include <math.h>
+#include <stdio.h>
+#include <complex.h>
+#include "fft.h"
+unsigned int prevIdx[N_SAMPLE/DDS_NUMBER_OF_DECODERS];
 
 //mask
 void calc_mask(int*mask,DDS_FreqsRecord_Typedef DDS_PTT_DP_LIST[DDS_NUMBER_OF_DECODERS]){
 	
-	unsigned int hat_f, hat_f_left, hat_f_right, hat_a;
+	unsigned int i,hat_f, hat_f_left, hat_f_right, hat_a;
 	
-int i;
-    for (i = 0; i < 2048; i++) {
+    
+    for (i = 0; i < N_SAMPLE; i++) {
        mask[i]=0; 
 
     }
@@ -42,8 +46,8 @@ unsigned int DDS_Detection_Loop(float complex*signal) {
 	unsigned int ret_value = DDS_INSERT_FREQ_NONE, aux_abs, isInPrevIdx;
 	unsigned int peakAmp = 1, peakIdx = 0, currAmp = 0, iPass=0, peakPos,
                  nPrevIdx,iPrevIdx, insertedFreqs[DDS_NUMBER_OF_DECODERS];
-    int mask[N];
-    //divisibility fixed
+    int mask[N_SAMPLE];
+    //divisibiNlity fixed
 
 	unsigned int tmp0;
 	unsigned int nPass=0, assigned_decoder = 0;
@@ -59,9 +63,9 @@ unsigned int DDS_Detection_Loop(float complex*signal) {
 
 	//TODO resetPassSet();
 
-	fft(signal,N);
+	fft(signal,N_SAMPLE);
 	calc_mask(mask,DDS_PTT_DP_LIST);
-	for(i = 0; i<N; i++){
+	for(i = 0; i<N_SAMPLE; i++){
 		if(abs(signal[i])>mask[i]){
 			passSet->passIdx[nPass] = i;
 			passSet->passAmp[nPass] = abs(signal[i]);
@@ -138,13 +142,4 @@ unsigned int DDS_Detection_Loop(float complex*signal) {
 	nPrevIdx = nPass; 
 	return ret_value;
 }
-
-
-
-
-
-
-
-
-
 
