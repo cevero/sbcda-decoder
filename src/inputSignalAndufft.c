@@ -55,14 +55,8 @@ int main(int argc, char *argv[]){
             }
         }
 
-		/*printf("%f+%fi\n", creal(vector[5]), cimag(vector[5]));*/
-        /*fft(vector,N_SAMPLE);*/
-        /*printf("FFT\n");*/
-        /*ift(vector,N_SAMPLE);*/
-        /*printf("IFT\n");*/
-
-		/*printf("%f+%fi\n", creal(vector[5]), cimag(vector[5]));*/
         printf("%d %d\n",window_count,DDS_Detection_Loop(vector));
+        /*DDS_Detection_Loop(vector);*/
         window_count++;
         count_offset = W*window_count;
     }
