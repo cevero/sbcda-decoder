@@ -10,14 +10,18 @@
 #define NUMBER_OF_SAMPLES 64000
 
 int main(int argc, char *argv[]){
-	int i0;
-	FILE* filePointer = fopen("../matlab/edc_m2s_tb.txt","r");
+    if (!argv[1]) {
+		printf("No file to process!\n");
+        return 1;
+    }
+	FILE* filePointer = fopen(argv[1],"r");
 
 	if(filePointer == NULL){
 		printf("Can't open file!\n");
 		return 1;
 	}
 
+	int i0;
 	char output[10];
 	int real[NUMBER_OF_SAMPLES];
 	int imag[NUMBER_OF_SAMPLES];
@@ -34,14 +38,13 @@ int main(int argc, char *argv[]){
 	/************************************************************************/
 
 	size_t W = 1280; // Window process
-	/*size_t ZP = N_SAMPLE-1280; //Zero padding*/
-    size_t N = 2048;
-	int n;
 
-	float complex vector[N_SAMPLE];
-
+	float complex *vector;
+    vector = malloc(sizeof(float complex)*N_SAMPLE);
+    
     int window_count = 0;
     int count_offset = 0;
+	int n;
 
     while(count_offset < NUMBER_OF_SAMPLES){
         for (n = 0; n < N_SAMPLE; n++) {
@@ -52,7 +55,14 @@ int main(int argc, char *argv[]){
             }
         }
 
-        printf("%d %d\n",window_count,DDS_Detection_Loop((float complex *) &vector));
+		/*printf("%f+%fi\n", creal(vector[5]), cimag(vector[5]));*/
+        /*fft(vector,N_SAMPLE);*/
+        /*printf("FFT\n");*/
+        /*ift(vector,N_SAMPLE);*/
+        /*printf("IFT\n");*/
+
+		/*printf("%f+%fi\n", creal(vector[5]), cimag(vector[5]));*/
+        printf("%d %d\n",window_count,DDS_Detection_Loop(vector));
         window_count++;
         count_offset = W*window_count;
     }
@@ -88,5 +98,6 @@ int main(int argc, char *argv[]){
                            creal(vector_time[n]), cimag(vector_time[n]));
 	}
 #endif
+    free(vector);
 	return 0;
 }

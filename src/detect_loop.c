@@ -54,8 +54,8 @@ unsigned int DDS_Detection_Loop(float complex *signal)
 
 	unsigned int tmp0;
 	unsigned int nPass=0, assigned_decoder = 0;
-	DDS_PassSet_Typedef * passSet; //save the window of signal in freq
-	passSet = malloc(sizeof(DDS_PassSet_Typedef)); //save the window of signal in freq
+    /*save the window of signal in freq*/
+	DDS_PassSet_Typedef *passSet = malloc(sizeof(DDS_PassSet_Typedef));
 	DDS_FreqsRecord_Typedef DDS_PTT_DP_LIST[DDS_NUMBER_OF_DECODERS];
 
 	/*Number_of_detected_indexes()
@@ -67,8 +67,10 @@ unsigned int DDS_Detection_Loop(float complex *signal)
 
 	//TODO resetPassSet();
 
-	fft(signal,N_SAMPLE);
-    calc_mask((int *) &mask,DDS_PTT_DP_LIST);
+    printf("%d\n",N_SAMPLE);
+    printf("%f+%fi\n", creal(signal[2]), cimag(signal[2]));
+	/*fft(signal,(size_t) N_SAMPLE);*/
+    /*calc_mask((int *) &mask,DDS_PTT_DP_LIST);*/
 
     /* Compare fft amplitude with mask */
     for(i = 0; i<N_SAMPLE; i++){

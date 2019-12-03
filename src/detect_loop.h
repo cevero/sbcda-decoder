@@ -35,7 +35,7 @@ typedef enum {
 	FREQ_DECODING
 } DDS_FreqsState_Typedef;
 
-void calc_mask(int*mask,DDS_FreqsRecord_Typedef DDS_PTT_DP_LIST[DDS_NUMBER_OF_DECODERS]);
-unsigned int DDS_Detection_Loop(float complex*signal);
+void calc_mask(int *mask,DDS_FreqsRecord_Typedef DDS_PTT_DP_LIST[DDS_NUMBER_OF_DECODERS]);
+unsigned int DDS_Detection_Loop(float complex *signal);
 
 #endif
