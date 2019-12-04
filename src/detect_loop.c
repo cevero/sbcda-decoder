@@ -1,14 +1,14 @@
-#include "detect_loop.h"
 #include <stdlib.h>
 #include <math.h>
 #include <stdio.h>
 #include <complex.h>
 #include "fft.h"
+#include "detect_loop.h"
 
 unsigned int prevIdx[N_SAMPLE/DDS_NUMBER_OF_DECODERS];
 
 //mask
-void calc_mask(int*mask,DDS_FreqsRecord_Typedef DDS_PTT_DP_LIST[DDS_NUMBER_OF_DECODERS])
+void calc_mask(int *mask,DDS_FreqsRecord_Typedef DDS_PTT_DP_LIST[DDS_NUMBER_OF_DECODERS])
 {
 	
 	unsigned int i,hat_f, hat_f_left, hat_f_right, hat_a;
@@ -68,20 +68,22 @@ unsigned int DDS_Detection_Loop(float complex *signal)
 
 	//TODO resetPassSet();
 
-    fft(signal,(size_t) N_SAMPLE+1); //WHY? WHY?
-    calc_mask((int *) &mask,DDS_PTT_DP_LIST);
+    fft(signal,N_SAMPLE); //WHY? WHY?
+    return 1;
+    calc_mask(mask,DDS_PTT_DP_LIST);
 
     /* Compare fft amplitude with mask */
     for(i = 0; i<N_SAMPLE; i++){
-        if(abs(signal[i])>mask[i]){
+        if(cabs(signal[i])>mask[i]){
             passSet->passIdx[nPass] = i;
-            passSet->passAmp[nPass] = abs(signal[i]);
+            passSet->passAmp[nPass] = cabs(signal[i]);
             nPass++;
         }
+        printf("%d\n",i);
     }
-    return 1;
 
-    while(peakAmp!=0 && assigned_decoder!=DDS_INSERT_FREQ_NONE){
+    while(peakAmp != 0 && assigned_decoder != DDS_INSERT_FREQ_NONE){
+
         assigned_decoder = DDS_INSERT_FREQ_NONE;
         peakAmp = 0;
 
@@ -93,6 +95,7 @@ unsigned int DDS_Detection_Loop(float complex *signal)
                 break;
             }
         }
+
         //If anyone decoder is available:
         while(assigned_decoder != DDS_INSERT_FREQ_NONE && iPass<nPass){
             currIdx = (int) passSet->passIdx[iPass];
@@ -134,18 +137,21 @@ unsigned int DDS_Detection_Loop(float complex *signal)
             passSet->passIdx[peakPos]=0;
             ret_value = 1;
         }
-    }
+    } //while
+
     //Update prevPassIdx
-    for (iPass=0;iPass<nPass;iPass++){
+    for (iPass=0; iPass < nPass; iPass++){
         currIdx = (int) passSet->passIdx[iPass];
         if (TEST_SIGN_BIT(currIdx, DDS_FREQ_NUMBER_OF_BITS)) {
             currIdx = CONVERT_TO_32BIT_SIGNED(currIdx,
             DDS_FREQ_NUMBER_OF_BITS); // sign extent
         }
-        prevIdx[iPass]=currIdx;
+        /*prevIdx[iPass]=currIdx;*/
     }
+
     //The length of previows indexes in next window is length of current window
     nPrevIdx = nPass; 
+    printf("nPrevIdx: %d\n",nPrevIdx);
     return ret_value;
 }
 

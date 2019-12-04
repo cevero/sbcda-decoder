@@ -39,10 +39,8 @@ int main(int argc, char *argv[]){
 
 	size_t W = 1280; // Window process
 
-	float complex *vector;
-    vector = malloc(sizeof(float complex)*N_SAMPLE);
+	float complex *vector = malloc(sizeof(float complex)*N_SAMPLE);
     
-    int window_count = 0;
     int count_offset = 0;
 	int n;
 
@@ -55,11 +53,15 @@ int main(int argc, char *argv[]){
             }
         }
 
-        printf("%d %d\n",window_count,DDS_Detection_Loop(vector));
-        /*DDS_Detection_Loop(vector);*/
-        window_count++;
-        count_offset = W*window_count;
+        /*printf("%f+%fi\n", creal(vector[1279]), cimag(vector[1279]));*/
+        /*fft(vector,(size_t) N_SAMPLE); //WHY? WHY?*/
+        /*ift(vector,(size_t) N_SAMPLE); //WHY? WHY?*/
+        /*printf("%f+%fi\n", creal(vector[1279]), cimag(vector[1279]));*/
+        printf("%d\n",DDS_Detection_Loop(vector));
+        count_offset += W;
+        printf("%d\n",count_offset);
     }
+    printf("%lu, %lu\n",sizeof(float complex), sizeof(float)*2);
 
 /*	Debug propose */
 #ifdef DEBUG
