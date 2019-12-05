@@ -1,12 +1,12 @@
 % This script generates the text file used for testing the EDC Decoder Unit
 
 % Create SimParm object
-nPtt = 2;               % two PTT signals
+nPtt = 1;               % two PTT signals
 tSim = 1.5;             % in seconds (this parameter will be overwrite)
-typeList = [2 2];       % all signals are PTT-A2
-userMsgLenCode = [1 1]; % both signals has minimal message length
+typeList = [2];       % all signals are PTT-A2
+userMsgLenCode = [1]; % both signals has minimal message length
 param = SimParam(nPtt, tSim, typeList, userMsgLenCode);
-param.timeList = [0 .04];
+param.timeList = [0];
 param.tSim = .5;
 
 % Generate the signal
