@@ -25,20 +25,20 @@ typedef struct {
 *	DDS_PassSet_Typedef assists in this processing
 */
 typedef struct {
-	unsigned int passIdx[N_SAMPLE/DDS_NUMBER_OF_DECODERS];
-	unsigned int passAmp[N_SAMPLE/DDS_NUMBER_OF_DECODERS];
+	unsigned int passIdx[N_SAMPLE];
+	unsigned int passAmp[N_SAMPLE];
 } DDS_PassSet_Typedef;
 
 typedef enum {
-	DDS_INSERT_FREQ_NONE,
-	FREQ_DETECTED_ONCE,
+	DDS_INSERT_FREQ_NONE=-1,
+	FREQ_DETECTED_ONCE=1,
 	FREQ_DETECTED_TWICE,
 	FREQ_DECODING
 } DDS_FreqsState_Typedef;
 
-void calc_mask(int *mask,
-            DDS_FreqsRecord_Typedef DDS_PTT_DP_LIST[DDS_NUMBER_OF_DECODERS]);
+void calc_mask(int *mask, DDS_FreqsRecord_Typedef *DDS_PTT_DP_LIST);
 
-unsigned int DDS_Detection_Loop(float complex *signal);
+unsigned int DDS_Detection_Loop(float complex *signal, unsigned int *prevIdx, unsigned int *nPrevIdx,
+                                    DDS_FreqsRecord_Typedef *DDS_PTT_DP_LIST);
 
 #endif

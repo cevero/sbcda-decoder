@@ -5,21 +5,19 @@
 #include "fft.h"
 #include "detect_loop.h"
 
-unsigned int prevIdx[N_SAMPLE/DDS_NUMBER_OF_DECODERS];
 
 /*Calculate the mask*/
-void calc_mask(int *mask,
-            DDS_FreqsRecord_Typedef DDS_PTT_DP_LIST[DDS_NUMBER_OF_DECODERS])
+void calc_mask(int *mask, DDS_FreqsRecord_Typedef *DDS_PTT_DP_LIST)
 {
 	
 	unsigned int i,hat_f, hat_f_left, hat_f_right, hat_a;
     
     for (i = 0; i < N_SAMPLE; i++) {
-       mask[i]=0; 
+       mask[i]=5000; 
     }
 
 	for (i = 0; i < DDS_NUMBER_OF_DECODERS; i++){
-		if(DDS_PTT_DP_LIST[i].detect_state!= DDS_INSERT_FREQ_NONE){
+		if(DDS_PTT_DP_LIST[i].detect_state != DDS_INSERT_FREQ_NONE){
 			hat_f = DDS_PTT_DP_LIST[i].freq_idx;
 			hat_a = DDS_PTT_DP_LIST[i].freq_amp;
 
@@ -42,29 +40,27 @@ void calc_mask(int *mask,
 	}
 }
 
-unsigned int DDS_Detection_Loop(float complex *signal)
+unsigned int DDS_Detection_Loop(float complex *signal, unsigned int *prevIdx, unsigned int *nPrevIdx,
+                                    DDS_FreqsRecord_Typedef *DDS_PTT_DP_LIST)
 {
 
 	int i, currIdx = 0;
     /*int lower_limit = 0, upper_limit = 0;*/
 	unsigned int ret_value = DDS_INSERT_FREQ_NONE, isInPrevIdx;
-	unsigned int peakAmp = 1, currAmp = 0, iPass=0, peakPos,
-                 nPrevIdx=0,iPrevIdx;
+	unsigned int peakAmp = 1, currAmp = 0, iPass=0, peakPos, iPrevIdx;
     int mask[N_SAMPLE];
     //divisibiNlity fixed
 
 	/*unsigned int tmp0, peakIdx = 0, aux_abs, insertedFreqs[DDS_NUMBER_OF_DECODERS];*/
 	unsigned int nPass=0, assigned_decoder = 0;
     /*save the window of signal in freq*/
-	/*DDS_PassSet_Typedef *passSet = malloc(sizeof(DDS_PassSet_Typedef));*/
     DDS_PassSet_Typedef passSet;
-	DDS_FreqsRecord_Typedef DDS_PTT_DP_LIST[DDS_NUMBER_OF_DECODERS];
 
 	/*Number_of_detected_indexes()
 	* In this loop, passSet stores the uFFT response.
 	* can find the signal frequency through the fft index 
 	* through the equation: f = idx*fs/L, where fs is sampling frequency and
-	* M is the lentgh of FFT.
+	* M is the length of FFT.
 	*/
 
 	//TODO resetPassSet();
@@ -74,12 +70,15 @@ unsigned int DDS_Detection_Loop(float complex *signal)
 
     /* Compare fft amplitude with mask */
     for(i = 0; i<N_SAMPLE; i++){
+        /*printf("abs signal: %f, mask: %d\n", cabs(signal[i]), mask[i]);*/
         if(cabs(signal[i])>mask[i]){
+            /*printf("abs signal: %f, mask: %d\n", cabs(signal[i]), mask[i]);*/
             passSet.passIdx[nPass] = i;
             passSet.passAmp[nPass] = cabs(signal[i]);
             nPass++;
         }
     }
+    printf("nPass: %d\n",nPass);
 
     while(peakAmp != 0 && assigned_decoder != DDS_INSERT_FREQ_NONE){
 
@@ -88,14 +87,15 @@ unsigned int DDS_Detection_Loop(float complex *signal)
 
         //Loop for find decoder free
         for (i = 0; i < DDS_NUMBER_OF_DECODERS; i++){
-
-            if(DDS_PTT_DP_LIST[i].detect_state==DDS_INSERT_FREQ_NONE){
+            if(DDS_PTT_DP_LIST[i].detect_state == DDS_INSERT_FREQ_NONE){
+                printf("Decoder free %d\n",i);
                 assigned_decoder=i;
                 break;
             }
         }
 
         //If anyone decoder is available:
+        /*while(assigned_decoder != DDS_INSERT_FREQ_NONE && iPass<nPass){*/
         while(assigned_decoder != DDS_INSERT_FREQ_NONE && iPass<nPass){
             currIdx = (int) passSet.passIdx[iPass];
             currAmp = passSet.passAmp[iPass];
@@ -104,13 +104,14 @@ unsigned int DDS_Detection_Loop(float complex *signal)
                 DDS_FREQ_NUMBER_OF_BITS); // sign extent
                 // now currIdx is in 2's complement 32bit
             }
+            printf("currIdx: %d - currAmp: %d, iPass: %d\n",passSet.passIdx[iPass],passSet.passAmp[iPass],iPass);
             //first amplitude test, find the highest amplitude signal.
             if (currAmp > peakAmp) {
                 isInPrevIdx = 0;
                 //Test if signal is present in two consecutive windows
                 //(double detection criteria)
                 //The loop scan the signal vector of the previous window 
-                for (iPrevIdx = 0; iPrevIdx<nPrevIdx; iPrevIdx++){
+                for (iPrevIdx = 0; iPrevIdx < *nPrevIdx; iPrevIdx++){
                     if(currIdx==prevIdx[iPrevIdx]){ //doubleDETECTION
                         isInPrevIdx = 1;
                         break;
@@ -131,6 +132,7 @@ unsigned int DDS_Detection_Loop(float complex *signal)
             DDS_PTT_DP_LIST[assigned_decoder].freq_idx
                 = passSet.passIdx[peakPos];
             DDS_PTT_DP_LIST[assigned_decoder].freq_amp = peakAmp;
+            DDS_PTT_DP_LIST[assigned_decoder].detect_state = FREQ_DETECTED_TWICE;
             //Update passSet
             passSet.passAmp[peakPos]=0;
             passSet.passIdx[peakPos]=0;
@@ -146,10 +148,11 @@ unsigned int DDS_Detection_Loop(float complex *signal)
             DDS_FREQ_NUMBER_OF_BITS); // sign extent
         }
         prevIdx[iPass]=currIdx;
+        /*printf("prevIdx: %d, passSet.passIdx: %d\n",prevIdx[iPass],passSet.passIdx[iPass]);*/
     }
 
-    //The length of previows indexes in next window is length of current window
-    nPrevIdx = nPass; 
+    //The length of previous indexes in next window is length of current window
+    *nPrevIdx = nPass; 
     return ret_value;
 }
 

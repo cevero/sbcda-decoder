@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h>
 #include <stddef.h>
 #include <complex.h>
 #include "fft.h"
@@ -40,9 +40,21 @@ int main(int argc, char *argv[]){
 	size_t W = 1280; // Window process
 
 	float complex *vector = malloc(sizeof(float complex)*N_SAMPLE);
+    unsigned int *prevIdx = malloc(sizeof(unsigned int)*N_SAMPLE);
+    unsigned int *nPrevIdx = malloc(sizeof(unsigned int));
+    *nPrevIdx = 0;
+
+    DDS_FreqsRecord_Typedef *DDS_PTT_DP_LIST = malloc(sizeof(DDS_FreqsRecord_Typedef)*DDS_NUMBER_OF_DECODERS);
+    memset(prevIdx,0,N_SAMPLE);
+
+    for (int i = 0; i < DDS_NUMBER_OF_DECODERS; i++) {
+        DDS_PTT_DP_LIST[i].freq_idx = 0;
+        DDS_PTT_DP_LIST[i].freq_amp = 0;
+        DDS_PTT_DP_LIST[i].detect_state = DDS_INSERT_FREQ_NONE;
+    }
     
     int count_offset = 0;
-	int n;
+	int n,cnt=0;
 
     while(count_offset < NUMBER_OF_SAMPLES){
         for (n = 0; n < N_SAMPLE; n++) {
@@ -53,9 +65,16 @@ int main(int argc, char *argv[]){
             }
         }
 
-        printf("%d\n",DDS_Detection_Loop(vector));
+        printf("ret: %d cnt: %d\n",
+                DDS_Detection_Loop(vector, prevIdx, nPrevIdx, DDS_PTT_DP_LIST), cnt);
+
+        for (int i = 0; i < 3; i++) {
+           printf("freq_idx: %d\n",DDS_PTT_DP_LIST[i].freq_idx);
+        }
 
         count_offset += W;
+        cnt++;
+        if (cnt==3) break;
     }
 
 /*	Debug propose */
@@ -91,5 +110,6 @@ int main(int argc, char *argv[]){
 #endif
 
     free(vector);
+    free(DDS_PTT_DP_LIST);
 	return 0;
 }
