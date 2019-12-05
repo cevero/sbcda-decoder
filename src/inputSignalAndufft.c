@@ -53,15 +53,10 @@ int main(int argc, char *argv[]){
             }
         }
 
-        /*printf("%f+%fi\n", creal(vector[1279]), cimag(vector[1279]));*/
-        /*fft(vector,(size_t) N_SAMPLE); //WHY? WHY?*/
-        /*ift(vector,(size_t) N_SAMPLE); //WHY? WHY?*/
-        /*printf("%f+%fi\n", creal(vector[1279]), cimag(vector[1279]));*/
         printf("%d\n",DDS_Detection_Loop(vector));
+
         count_offset += W;
-        printf("%d\n",count_offset);
     }
-    printf("%lu, %lu\n",sizeof(float complex), sizeof(float)*2);
 
 /*	Debug propose */
 #ifdef DEBUG
@@ -94,6 +89,7 @@ int main(int argc, char *argv[]){
                            creal(vector_time[n]), cimag(vector_time[n]));
 	}
 #endif
+
     free(vector);
 	return 0;
 }
