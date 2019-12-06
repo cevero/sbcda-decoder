@@ -9,7 +9,7 @@
 #define DDS_FREQ_NUMBER_OF_BITS									11
 #define DDS_NUMBER_OF_DECODERS									12
 #define DDS_INSERT_FREQ_NEW 1
-#define N_SAMPLE (2048)
+#define N_SAMPLE (4096)
 
 
 /*	DDS_FreqsRecord_Typedef will be passed to the next processing

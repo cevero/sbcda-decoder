@@ -7,7 +7,7 @@
 #include "ift.h"
 #include "detect_loop.h"
 
-#define NUMBER_OF_SAMPLES 192000
+#define NUMBER_OF_SAMPLES 256000
 
 int main(int argc, char *argv[]){
     if (!argv[1]) {
@@ -37,7 +37,7 @@ int main(int argc, char *argv[]){
 	
 	/************************************************************************/
 
-	size_t W = 1280; // Window process
+	size_t W = 2560; // Window process
 
 	float complex *vector = malloc(sizeof(float complex)*N_SAMPLE);
     unsigned int *prevIdx = malloc(sizeof(unsigned int)*N_SAMPLE);

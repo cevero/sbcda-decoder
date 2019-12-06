@@ -5,7 +5,7 @@
 #include "fft.h"
 #include "detect_loop.h"
 
-#define THREAD_NUM (2)
+#define THREAD_NUM (1)
 /*Calculate the mask*/
 void calc_mask(int *mask, DDS_FreqsRecord_Typedef *DDS_PTT_DP_LIST)
 {
