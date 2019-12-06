@@ -4,6 +4,8 @@
 #include <complex.h>
 #include "fft.h"
 #include "detect_loop.h"
+#include <omp.h>
+
 #define THREAD_NUM 16
 
 /*Calculate the mask*/
@@ -11,16 +13,16 @@ void calc_mask(int *mask, DDS_FreqsRecord_Typedef *DDS_PTT_DP_LIST)
 {
 	
 	unsigned int i,hat_f, hat_f_left, hat_f_right, hat_a;
-#pragma omp parallel shared(mask) private(i,hat_f, hat_f_left, hat_f_right,\
-        hat_a) num_threads(THREAD_NUM)
-    {
-#pragma omp for
+
     for (i = 0; i < N_SAMPLE; i++) {
        mask[i]=5000; 
     }
+        
 
-#pragma omp for
+#pragma omp parallel for private(hat_f, hat_f_left, hat_f_right,\
+        hat_a) num_threads(THREAD_NUM)
 	for (i = 0; i < DDS_NUMBER_OF_DECODERS; i++){
+            printf("thread = %d\n",omp_get_thread_num());
 		if(DDS_PTT_DP_LIST[i].detect_state != DDS_INSERT_FREQ_NONE){
 			hat_f = DDS_PTT_DP_LIST[i].freq_idx;
 			hat_a = DDS_PTT_DP_LIST[i].freq_amp;
@@ -28,8 +30,10 @@ void calc_mask(int *mask, DDS_FreqsRecord_Typedef *DDS_PTT_DP_LIST)
 			hat_f_left = (hat_f<52)? (hat_f+2047-52):hat_f;
 			hat_f_right = (hat_f>2047-52)? (hat_f+52-2047):hat_f;
 
-#pragma omp for
+#pragma omp parallel for  shared(mask) firstprivate(hat_f, hat_f_left,\
+        hat_f_right,hat_a) num_threads(THREAD_NUM)
 			for (i = hat_f_left-52; i <= hat_f_right+52; i++){
+            printf("thread = %d\n",omp_get_thread_num());
 				if(abs(i-hat_f)<=26 && mask[i]<2*hat_a){
                     //represents a band of 3.2kHz
 					mask[i] = 2*hat_a;
@@ -43,10 +47,11 @@ void calc_mask(int *mask, DDS_FreqsRecord_Typedef *DDS_PTT_DP_LIST)
 			
 		}
 	}
-    }
+    
 }
 
-unsigned int DDS_Detection_Loop(float complex *signal, unsigned int *prevIdx, unsigned int *nPrevIdx,
+unsigned int DDS_Detection_Loop(float complex *signal, unsigned int *prevIdx,
+        unsigned int *nPrevIdx,
                                     DDS_FreqsRecord_Typedef *DDS_PTT_DP_LIST)
 {
 
@@ -92,12 +97,12 @@ unsigned int DDS_Detection_Loop(float complex *signal, unsigned int *prevIdx, un
         peakAmp = 0;
 
         //Loop for find decoder free
-#pragma omp parallel for num_threads(THREAD_NUM)
+//#pragma omp parallel for shared(DDS_PTT_DP_LIST)num_threads(THREAD_NUM)
         for (i = 0; i < DDS_NUMBER_OF_DECODERS; i++){
-            if(DDS_PTT_DP_LIST[i].detect_state == DDS_INSERT_FREQ_NONE){
-                printf("Decoder free %d\n",i);
-                assigned_decoder=i;
-                break;
+             if(DDS_PTT_DP_LIST[i].detect_state == DDS_INSERT_FREQ_NONE){
+                 printf("Decoder free %d\n",i);
+                 assigned_decoder=i;
+                 break;
             }
         }
 
