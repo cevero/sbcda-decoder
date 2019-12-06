@@ -7,7 +7,7 @@
 #include "ift.h"
 #include "detect_loop.h"
 
-#define NUMBER_OF_SAMPLES 64000
+#define NUMBER_OF_SAMPLES 1024000
 
 int main(int argc, char *argv[]){
     if (!argv[1]) {
@@ -74,7 +74,7 @@ int main(int argc, char *argv[]){
 
         count_offset += W;
         cnt++;
-        if (cnt==3) break;
+       // if (cnt==400) break;
     }
 
 /*	Debug propose */

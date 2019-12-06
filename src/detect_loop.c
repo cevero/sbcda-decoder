@@ -5,18 +5,20 @@
 #include "fft.h"
 #include "detect_loop.h"
 
-
+#define THREAD_NUM (1)
 /*Calculate the mask*/
 void calc_mask(int *mask, DDS_FreqsRecord_Typedef *DDS_PTT_DP_LIST)
 {
 	
 	unsigned int i,hat_f, hat_f_left, hat_f_right, hat_a, mask_cnt=0;
 	int bigLeft=0, bigRight=0; //bool?
-    
+# pragma omp parallel for shared(mask) num_threads(THREAD_NUM) 
     for (i = 0; i < N_SAMPLE; i++) {
+
        mask[i]=5000; 
     }
 
+#pragma omp parallel for private(hat_f, hat_f_left, hat_f_right, hat_a) num_threads(THREAD_NUM)
 	for (i = 0; i < DDS_NUMBER_OF_DECODERS; i++){
 		if(DDS_PTT_DP_LIST[i].detect_state != DDS_INSERT_FREQ_NONE){
 			hat_f = DDS_PTT_DP_LIST[i].freq_idx;
@@ -27,6 +29,7 @@ void calc_mask(int *mask, DDS_FreqsRecord_Typedef *DDS_PTT_DP_LIST)
 			bigLeft = hat_f_left>hat_f;
 
 			mask_cnt = hat_f_left;
+
 			while(mask_cnt!=hat_f_right+1){
 				if(mask[mask_cnt]<2*hat_a && (abs((mask_cnt+2047*(bigRight-bigLeft))-hat_f)<=26)){
                     //represents a band of 3.2kHz
@@ -48,6 +51,7 @@ void calc_mask(int *mask, DDS_FreqsRecord_Typedef *DDS_PTT_DP_LIST)
 			}			
 		}
 	}
+    
 }
 
 unsigned int DDS_Detection_Loop(float complex *signal, unsigned int *prevIdx, unsigned int *nPrevIdx,
@@ -96,6 +100,7 @@ unsigned int DDS_Detection_Loop(float complex *signal, unsigned int *prevIdx, un
         peakAmp = 0;
 
         //Loop for find decoder free
+
         for (i = 0; i < DDS_NUMBER_OF_DECODERS; i++){
             if(DDS_PTT_DP_LIST[i].detect_state == DDS_INSERT_FREQ_NONE){
                 printf("Decoder free %d\n",i);
@@ -106,6 +111,8 @@ unsigned int DDS_Detection_Loop(float complex *signal, unsigned int *prevIdx, un
 
         //If anyone decoder is available:
         /*while(assigned_decoder != DDS_INSERT_FREQ_NONE && iPass<nPass){*/
+
+
         while(assigned_decoder != DDS_INSERT_FREQ_NONE && iPass<nPass){
             currIdx = (int) passSet.passIdx[iPass];
             currAmp = passSet.passAmp[iPass];
@@ -151,12 +158,16 @@ unsigned int DDS_Detection_Loop(float complex *signal, unsigned int *prevIdx, un
     } //while
 
     //Update prevPassIdx
+#pragma omp parallel for default(none) private(currIdx) \
+    firstprivate(nPass,prevIdx) shared(passSet) num_threads(THREAD_NUM)
     for (iPass=0; iPass < nPass; iPass++){
-        currIdx = (int) passSet.passIdx[iPass];
+#pragma omp critical
+       currIdx = (int) passSet.passIdx[iPass];
         if (TEST_SIGN_BIT(currIdx, DDS_FREQ_NUMBER_OF_BITS)) {
             currIdx = CONVERT_TO_32BIT_SIGNED(currIdx,
             DDS_FREQ_NUMBER_OF_BITS); // sign extent
         }
+#pragma omp critical
         prevIdx[iPass]=currIdx;
         /*printf("prevIdx: %d, passSet.passIdx: %d\n",prevIdx[iPass],passSet.passIdx[iPass]);*/
     }
