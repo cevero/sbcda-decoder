@@ -6,7 +6,7 @@ TARGET := inputSignalAndufft
 SRCEXT := c
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-CFLAGS :=-Wall -g
+CFLAGS :=-Wall -g -fopenmp
 LIB :=lib/ufft/fft-dit.c lib/ufft/ift-dit.c -lm #-pthread
 INC :=-Ilib/ufft
 
