@@ -10,7 +10,8 @@
 void calc_mask(int *mask, DDS_FreqsRecord_Typedef *DDS_PTT_DP_LIST)
 {
 	
-	unsigned int i,hat_f, hat_f_left, hat_f_right, hat_a;
+	unsigned int i,hat_f, hat_f_left, hat_f_right, hat_a, mask_cnt=0;
+	int bigLeft=0, bigRight=0; //bool?
     
     for (i = 0; i < N_SAMPLE; i++) {
        mask[i]=5000; 
@@ -21,21 +22,30 @@ void calc_mask(int *mask, DDS_FreqsRecord_Typedef *DDS_PTT_DP_LIST)
 			hat_f = DDS_PTT_DP_LIST[i].freq_idx;
 			hat_a = DDS_PTT_DP_LIST[i].freq_amp;
 
-			hat_f_left = (hat_f<52)? (hat_f+2047-52):hat_f;
-			hat_f_right = (hat_f>2047-52)? (hat_f+52-2047):hat_f;
+			hat_f_left = (hat_f<52)? (hat_f+2047-52):(hat_f-52);
+			hat_f_right = (hat_f>2047-52)? (hat_f+52-2047):(hat_f+52);
+			bigLeft = hat_f_left>hat_f;
 
-			for (i = hat_f_left-52; i <= hat_f_right+52; i++){
-				if(abs(i-hat_f)<=26 && mask[i]<2*hat_a){
+			mask_cnt = hat_f_left;
+			while(mask_cnt!=hat_f_right+1){
+				if(mask[mask_cnt]<2*hat_a && (abs((mask_cnt+2047*(bigRight-bigLeft))-hat_f)<=26)){
                     //represents a band of 3.2kHz
-					mask[i] = 2*hat_a;
-				}else if(abs(i-hat_f)<=38 && mask[i]<hat_a/6){ 
-					mask[i] = hat_a/6;
-				}else if(abs(i-hat_f)<=52 && mask[i]<3*hat_a/32){
-					mask[i] = 3*hat_a/32;
+					mask[mask_cnt] = 2*hat_a;
+				}else if(mask[mask_cnt]<hat_a/6 && abs((mask_cnt+2047*(bigRight-bigLeft))-hat_f)<=38){ 
+					mask[mask_cnt] = hat_a/6;
+				}else if(mask[mask_cnt]<3*hat_a/32 && abs((mask_cnt+2047*(bigRight-bigLeft))-hat_f)<=52){
+					mask[mask_cnt] = 3*hat_a/32;
 				}
-
+				if (mask_cnt == 2047){
+        			if (bigLeft){
+				        bigLeft = 0;
+        			}
+        			bigRight = hat_f_right<hat_f;
+        			mask_cnt=0;
+    			}else{
+        			mask_cnt++;
+    			}
 			}			
-			
 		}
 	}
 }
