@@ -1,13 +1,13 @@
 % This script generates the text file used for testing the EDC Decoder Unit
 
 % Create SimParm object
-nPtt = 1;               % two PTT signals
+nPtt = 3;               % two PTT signals
 tSim = 1.5;             % in seconds (this parameter will be overwrite)
-typeList = [2];       % all signals are PTT-A2
-userMsgLenCode = [1]; % both signals has minimal message length
+typeList = 2*ones(1,nPtt);       % all signals are PTT-A2
+userMsgLenCode = 1*ones(1,nPtt); % both signals has minimal message length
 param = SimParam(nPtt, tSim, typeList, userMsgLenCode);
-param.timeList = [0];
-param.tSim = .5;
+%param.timeList = [0];
+%param.tSim = .5;
 
 % Generate the signal
 signal = param.signalGen();
@@ -19,7 +19,7 @@ signal = param.signalGen();
 Fs = 128e3;
 NFFT = 2048;
 f_vec = [-floor(NFFT/2) : ceil(NFFT/2)-1] * Fs/NFFT;
-spectrogram(signal,hamming(128),64,f_vec,Fs,'yaxis');
+spectrogram(signal/2^15,hamming(128),120,f_vec,Fs,'yaxis');
 
 % Convert the signal to a text file, where 
 % every line correspond to a complex sample

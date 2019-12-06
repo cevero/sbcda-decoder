@@ -7,7 +7,7 @@
 #include "ift.h"
 #include "detect_loop.h"
 
-#define NUMBER_OF_SAMPLES 1024000
+#define NUMBER_OF_SAMPLES 192000
 
 int main(int argc, char *argv[]){
     if (!argv[1]) {
@@ -75,6 +75,10 @@ int main(int argc, char *argv[]){
         count_offset += W;
         cnt++;
        // if (cnt==400) break;
+    }
+    for (int i = 0; i < DDS_NUMBER_OF_DECODERS; i++) {
+        printf("\ni = %d, freq_idx = %d, amplitude = %d\n",i,DDS_PTT_DP_LIST[i].freq_idx,DDS_PTT_DP_LIST[i].freq_amp);
+        
     }
 
 /*	Debug propose */

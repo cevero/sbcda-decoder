@@ -5,7 +5,7 @@
 #include "fft.h"
 #include "detect_loop.h"
 
-#define THREAD_NUM (1)
+#define THREAD_NUM (2)
 /*Calculate the mask*/
 void calc_mask(int *mask, DDS_FreqsRecord_Typedef *DDS_PTT_DP_LIST)
 {
@@ -18,7 +18,7 @@ void calc_mask(int *mask, DDS_FreqsRecord_Typedef *DDS_PTT_DP_LIST)
        mask[i]=5000; 
     }
 
-#pragma omp parallel for private(hat_f, hat_f_left, hat_f_right, hat_a) num_threads(THREAD_NUM)
+#pragma omp parallel for shared(mask) private(hat_f, hat_f_left, hat_f_right, hat_a) num_threads(THREAD_NUM)
 	for (i = 0; i < DDS_NUMBER_OF_DECODERS; i++){
 		if(DDS_PTT_DP_LIST[i].detect_state != DDS_INSERT_FREQ_NONE){
 			hat_f = DDS_PTT_DP_LIST[i].freq_idx;
@@ -33,10 +33,13 @@ void calc_mask(int *mask, DDS_FreqsRecord_Typedef *DDS_PTT_DP_LIST)
 			while(mask_cnt!=hat_f_right+1){
 				if(mask[mask_cnt]<2*hat_a && (abs((mask_cnt+2047*(bigRight-bigLeft))-hat_f)<=26)){
                     //represents a band of 3.2kHz
+#pragma omp critical
 					mask[mask_cnt] = 2*hat_a;
 				}else if(mask[mask_cnt]<hat_a/6 && abs((mask_cnt+2047*(bigRight-bigLeft))-hat_f)<=38){ 
+#pragma omp critical
 					mask[mask_cnt] = hat_a/6;
 				}else if(mask[mask_cnt]<3*hat_a/32 && abs((mask_cnt+2047*(bigRight-bigLeft))-hat_f)<=52){
+#pragma omp critical
 					mask[mask_cnt] = 3*hat_a/32;
 				}
 				if (mask_cnt == 2047){
