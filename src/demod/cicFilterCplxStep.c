@@ -1,31 +1,31 @@
 #include "service.h"
-#include "sampler.h"
 #include "cicFilterCplxStep.h"
 
-void cicFilterCplxStep(int complex *inputSignal, mem * str, float complex  *outputSignal)
+void cicFilterCplxStep(float complex *inputSignal, mem_cic * str, float complex  *outputSignal, int decimation, int delay, int inputLength)
 {
   // Generare the CIC filter output for an input signal window 1280 samples
-  // inputSignal: a complex signal with k*deciRate samples.
+  // inputSignal: a complex signal with k*decimation samples.
   // str: a structure with cicFitler state
   // outputSignal: a complex signal with k samples
 
   uint16_t iSmplOut = 0;
   uint16_t deciCount = 0;
-  int previousAccRe[delayIdx], previousAccIm[delayIdx], accRe, accIm, acc, iSmpl,diffRe,diffIm, i; 
+  int previousAccRe[delay], previousAccIm[delay], accRe, accIm, acc, iSmpl,diffRe,diffIm, i; 
   uint8_t accDlyIdx;
 
 	
   // read state load data in previous step
-  for(i=0;i<delayIdx;i++){
+  for(i=0;i<delay;i++){
     previousAccRe[i] = str->previousAccRe[i];
     previousAccIm[i] = str->previousAccIm[i];
   }
-	
+
   accRe = str->accRe;
   accIm = str->accIm;
   accDlyIdx = str->accDlyIdx;
 	
-  for (iSmpl=0;iSmpl<inputSeqW;iSmpl++){
+  for (iSmpl=0;iSmpl<inputLength;iSmpl++){
+		//printf("[%d] inRe %f\n",iSmpl, creal(inputSignal[iSmpl]));
     // acumulate with overflow  
     accRe = accRe + creal(inputSignal[iSmpl]);    
     if (accRe >= maxValDiv2){
@@ -43,7 +43,7 @@ void cicFilterCplxStep(int complex *inputSignal, mem * str, float complex  *outp
     }
     // decimation
     deciCount++;
-    if (deciCount==deciRate){
+    if (deciCount==decimation){
       deciCount = 0;      
       diffRe = accRe-previousAccRe[accDlyIdx];
       // overflow
@@ -63,9 +63,10 @@ void cicFilterCplxStep(int complex *inputSignal, mem * str, float complex  *outp
       }    
       // update buffer with previous decimator output
       previousAccIm[accDlyIdx] = accIm;    
-      outputSignal[iSmplOut] = (double) diffRe + (double) diffIm*I;      
+      outputSignal[iSmplOut] = (double) diffRe + (double) diffIm*I;
+			//printf("Re %f Im %f\n",creal(outputSignal[iSmplOut]),cimag(outputSignal[iSmplOut]));
       // update buffer index
-      if (accDlyIdx>=delayIdx-1){
+      if (accDlyIdx>=delay-1){
         accDlyIdx = 0;
       }else{
         accDlyIdx++;
@@ -77,7 +78,7 @@ void cicFilterCplxStep(int complex *inputSignal, mem * str, float complex  *outp
   // update state
   str->accRe = accRe;
   str->accIm = accIm;
-  for(i=0;i<delayIdx;i++){
+  for(i=0;i<delay;i++){
     str->previousAccRe[i] = previousAccRe[i];
     str->previousAccIm[i] = previousAccIm[i];
   }
