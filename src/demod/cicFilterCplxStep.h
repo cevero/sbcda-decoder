@@ -1,23 +1,15 @@
+#ifndef CICFILTER_H
+#define CICFILTER_H
 
-#ifndef SAMPLER
-	#define N_SAMPLE 1280 //extern
-	#define inputSeqW 160
-	#define deciRate 20 //extern
-	#define delayIdx  8 //extern
-	#define smplPerSymb 8
-	typedef struct 
-	{
-  	int previousAccRe[delayIdx];
-  	int previousAccIm[delayIdx];
-  	int accRe, accIm, accDlyIdx;
-  	int delayAcc, prevDelay;
-	} mem;
-#endif
-
-#define length N_SAMPLE/deciRate
 #define maxVal 1073741824//=pow(2,30);
 #define maxValDiv2 maxVal>>1
 
+typedef struct {
+  int *previousAccRe;
+  int *previousAccIm;
+  int accRe, accIm, accDlyIdx;
+} mem_cic; 
 
+void cicFilterCplxStep(float complex *inputSignal, mem_cic * str, float complex  *outputSignal, int decimation, int delay, int inputLength);
 
-void cicFilterCplxStep(int complex *inputSignal, mem * str, float complex  *outputSignal);
+#endif
