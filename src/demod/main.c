@@ -1,4 +1,4 @@
-#include "service.h"
+#include "../service.h"
 // #include "cicFilterCplxStep.h"
 // #include "sampler.h"
 #include "pttA2Demod.h"
@@ -9,7 +9,7 @@
 
 int main(int argc, char *argv[]){
   int i0,i1;
-  FILE* inputFile = fopen("inputDemod.txt","r");
+  FILE* inputFile = fopen("test_files/inputDemod.txt","r");
 
   if(inputFile == NULL){
     printf("Can't open file!\n");
@@ -26,7 +26,7 @@ int main(int argc, char *argv[]){
 	 //printf("%02d: %06d %06d\n", 0, inputRe[1], inputIm[1]);
    fclose(inputFile);
 
-	 inputFile = fopen("inputParameters.txt","r");
+	 inputFile = fopen("test_files/inputParameters.txt","r");
 
   if(inputFile == NULL){
     printf("Can't open parameters file!\n");
@@ -40,7 +40,7 @@ int main(int argc, char *argv[]){
 	}
   fclose(inputFile);
 
-	FILE* outputFile = fopen("outputDemod.txt","r");
+	FILE* outputFile = fopen("test_files/outputDemod.txt","r");
     
   if(outputFile == NULL){
     printf("Can't open file!\n");   

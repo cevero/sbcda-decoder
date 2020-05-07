@@ -1,4 +1,4 @@
-#include "service.h"
+#include "../service.h"
 // #include "sampler.h"
 #include "cicFilterCplxStep.h"
 #define NUMBER_OF_SAMPLES 640
@@ -10,7 +10,7 @@
 #define length inputSeqW/deciRate
 int main(int argc, char *argv[]){
    int i0,i1;
-   FILE* inputFile = fopen("inputCIC.txt","r");
+   FILE* inputFile = fopen("test_files/inputCIC.txt","r");
    if(inputFile == NULL){
        printf("Can't open file!\n");
        return 1;
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]){
    }
 	
    printf("---------------> Checker <----------------\n\n");
-   FILE* outputFile = fopen("outputCIC.txt","r");
+   FILE* outputFile = fopen("test_files/outputCIC.txt","r");
    if(outputFile == NULL){
      printf("Can't open file!\n");
      return 1;

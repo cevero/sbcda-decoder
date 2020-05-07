@@ -1,4 +1,4 @@
-#include "service.h"
+#include "../service.h"
 #include "cicFilterCplxStep.h"
 
 void cicFilterCplxStep(float complex *inputSignal, mem_cic * str, float complex  *outputSignal, int decimation, int delay, int inputLength)

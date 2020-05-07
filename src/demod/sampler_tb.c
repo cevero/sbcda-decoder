@@ -1,4 +1,4 @@
-#include "service.h"
+#include "../service.h"
 #include "sampler.h"
 //#include "cicFilterCplxStep.h"
 #define inputSeqW 8
@@ -8,7 +8,7 @@
 #define NOUT	NUMBER_OF_SAMPLES/smplPerSymb
 int main(int argc, char *argv[]){
    int i0,i1;
-   FILE* inputFile = fopen("inputSampler.txt","r");
+   FILE* inputFile = fopen("test_files/inputSampler.txt","r");
    if(inputFile == NULL){
        printf("Can't open file!\n");
        return 1;
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]){
 		//printf("[%d] %d\n", symbOutBuffer[1][i0],symbOutBuffer[0][i0]);
   }
   printf("---------------> Checker <----------------\n\n");
-  FILE* outputFile = fopen("outputSampler.txt","r");
+  FILE* outputFile = fopen("test_files/outputSampler.txt","r");
   if(outputFile == NULL){
       printf("Can't open file!\n");
       return 1;
