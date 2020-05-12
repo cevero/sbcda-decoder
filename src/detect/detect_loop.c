@@ -5,6 +5,7 @@
 #include <complex.h>
 #include "fft.h"
 #include "detect_loop.h"
+#include "../service.h"
 
 int prevIdx[] = {[0 ... DFT_LENGTH-1]=0};
 //FreqsRecord_Typedef PTT_DP_LIST[NUMBER_OF_DECODERS];
@@ -81,7 +82,7 @@ void calc_mask(int * mask, FreqsRecord_Typedef *PTT_DP_LIST)
     }
   }
 }
-
+//#define microFFT
 unsigned int detectLoop(int complex *inputSignal, FreqsRecord_Typedef *PTT_DP_LIST)
 {
 
@@ -90,11 +91,8 @@ unsigned int detectLoop(int complex *inputSignal, FreqsRecord_Typedef *PTT_DP_LI
 	unsigned int ret_value = FREQ_NONE, isInPrevIdx;
 	unsigned int peakAmp = 1, currAmp = 0, iPass=0, peakPos, iPrevIdx;
   int mask[] = {[0 ... DFT_LENGTH-1] = DEFAULT_AMP_THRESHOLD};
-	//float complex fftSignal[] = {[0 ... DFT_LENGTH-1] = 0+0*I};
-	float complex *fftSignal = malloc(DFT_LENGTH*sizeof(int complex));
-    //divisibiNlity fixed
-
-	/*unsigned int tmp0, peakIdx = 0, aux_abs, insertedFreqs[DDS_NUMBER_OF_DECODERS];*/
+	float complex fftSignal[] = {[0 ... DFT_LENGTH-1] = 0+0*I};
+	
 	unsigned int nPass=0, assigned_decoder = 0;
     /*save the window of signal in freq*/
     PassSet_Typedef passSet;
@@ -106,16 +104,21 @@ unsigned int detectLoop(int complex *inputSignal, FreqsRecord_Typedef *PTT_DP_LI
 	* M is the length of FFT.
 	*/
 	
-		for (int n = 0; n < DFT_LENGTH; n++) {
-      if (n<WINDOW_LENGTH) {
-        fftSignal[n] = inputSignal[n];
-      } else {
-        fftSignal[n] = 0;
-      }
+	for (int n = 0; n < DFT_LENGTH; n++) {
+    if (n<WINDOW_LENGTH) {
+      fftSignal[n] = inputSignal[n];
+    } else {
+      fftSignal[n] = 0;
     }
-		//printf("here! %d\n",DFT_LENGTH);		
-    fft(fftSignal,DFT_LENGTH);		
-		
+  }
+		//printf("here! %d\n",DFT_LENGTH);
+#ifdef microFFT	
+    ufft(fftSignal,DFT_LENGTH);		
+#else
+	float complex scratch[DFT_LENGTH];
+	fft(scratch,fftSignal,DFT_LENGTH);
+#endif
+	
     calc_mask(mask,PTT_DP_LIST);
 		
     /* Compare fft amplitude with mask */
@@ -129,9 +132,8 @@ unsigned int detectLoop(int complex *inputSignal, FreqsRecord_Typedef *PTT_DP_LI
             nPass++;
         }
     }
-		free(fftSignal);
+		
     //printf("nPass: %d\n",nPass);
-
     while(peakAmp > 0 && assigned_decoder != FREQ_INVALID){
 
         assigned_decoder = FREQ_INVALID;
@@ -187,6 +189,6 @@ unsigned int detectLoop(int complex *inputSignal, FreqsRecord_Typedef *PTT_DP_LI
 		
   for (iPass=0; iPass < nPass; iPass++){
     prevIdx[passSet.Idx[iPass]]=1;
-  }		
+  }
   return ret_value;
 }

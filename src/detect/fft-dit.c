@@ -73,7 +73,7 @@ static int fft_reverse(int b, float complex *buffers[2], size_t N)
 	return b;
 }
 
-int fft(float complex *vector, size_t N)
+int ufft(float complex *vector, size_t N)
 {
 	
 	if( !N ) return 0;
@@ -93,6 +93,6 @@ int fft(float complex *vector, size_t N)
 	memmove(vector, buffers[b&1], N*sizeof(float complex));
 
 	free( buffers[1] );
-		
+	
 	return 0;
 }

@@ -50,4 +50,7 @@ void frameSynch(PTTPackage_Typedef * wpckg, int pttd_symbol);
 void readData(PTTPackage_Typedef * wpckg, int pttd_symbol);
 
 int VgaGain (int tmp_amp);
+
+int fft(float complex *tmp, float complex *v, int n);
+
 #endif

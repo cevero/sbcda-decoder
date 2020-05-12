@@ -12,8 +12,8 @@
 #define FREQ_INVALID	-1
 #define N_SAMPLE (8192)
 #define DFT_LENGTH (2048)
-#define DEFAULT_AMP_THRESHOLD (100)
-#define DEFAULT_TIMEOUT (100)
+#define DEFAULT_AMP_THRESHOLD (150)
+#define DEFAULT_TIMEOUT (51)
 #define WINDOW_LENGTH (1280)
 /*	DDS_FreqsRecord_Typedef will be passed to the next processing
 */
@@ -34,9 +34,9 @@ typedef struct {
 } PassSet_Typedef;
 
 typedef enum {
-	FREQ_NONE,
-	FREQ_DETECTED_TWICE,
-	FREQ_DECODING
+	FREQ_NONE,//0
+	FREQ_DETECTED_TWICE,//1
+	FREQ_DECODING//2
 } FreqsState_Typedef;
 
 void calc_mask(int * mask, FreqsRecord_Typedef *PTT_DP_LIST);

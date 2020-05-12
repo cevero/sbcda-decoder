@@ -15,6 +15,6 @@
  *
  * @return Zero for success.
  */
-int fft(float complex *vector, size_t N);
+int ufft(float complex *vector, size_t N);
 
 #endif

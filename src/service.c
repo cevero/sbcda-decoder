@@ -200,3 +200,47 @@ int VgaGain (int tmp_amp)
 	tmp_vga = tmp_vga_exp + tmp_vga_mant;
 	return tmp_vga;
 }
+
+/*************************
+*/
+/* Factored discrete Fourier transform, or FFT, and its inverse iFFT */
+#ifndef PI
+# define PI	3.14159265358979323846264338327950288
+#endif
+
+/*
+   fft(v,N):
+   [0] If N==1 then return.
+   [1] For k = 0 to N/2-1, let ve[k] = v[2*k]
+   [2] Compute fft(ve, N/2);
+   [3] For k = 0 to N/2-1, let vo[k] = v[2*k+1]
+   [4] Compute fft(vo, N/2);
+   [5] For m = 0 to N/2-1, do [6] through [9]
+   [6]   Let w.re = cos(2*PI*m/N)
+   [7]   Let w.im = -sin(2*PI*m/N)
+   [8]   Let v[m] = ve[m] + w*vo[m]
+   [9]   Let v[m+N/2] = ve[m] - w*vo[m]
+ */
+int fft(float complex *tmp, float complex *v, int n)
+{
+	if(n>1) {			/* otherwise, do nothing and return */
+    int k,m;   
+		float complex z, w, *vo, *ve;
+
+    ve = tmp; vo = tmp+n/2;				
+    for(k=0; k<n/2; k++) {
+      ve[k] = v[2*k];
+      vo[k] = v[2*k+1];
+    }
+    fft(v, ve, n/2);/* FFT on even-indexed elements of v[]*/
+    fft(v, vo, n/2);/* FFT on odd-indexed elements of v[] */
+    for(m=0; m<n/2; m++) {
+      w = cos(2*PI*m/(double)n)-(sin(2*PI*m/(double)n)*I);   
+      z = w*vo[m];      
+      v[m] = ve[m] + z;      
+      v[m+n/2] = ve[m]-z;  
+    }
+  }
+	
+  return 0;
+}

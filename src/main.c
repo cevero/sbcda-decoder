@@ -4,7 +4,7 @@
 #define NOUT 752
 
 int main(int argc, char *argv[]){
-  int i0,i1;
+  int n0;
   FILE* inputFile = fopen("inputSignal.txt","r");
 
   if(inputFile == NULL){
@@ -15,8 +15,8 @@ int main(int argc, char *argv[]){
   int inputRe[NUMBER_OF_SAMPLES];
   int inputIm[NUMBER_OF_SAMPLES];
 
-  for (i0=0;fgets(input,sizeof(input), inputFile) != NULL;i0++){
-    sscanf(input,"%d %d",&inputRe[i0], &inputIm[i0]);
+  for (n0=0;fgets(input,sizeof(input), inputFile) != NULL;n0++){
+    sscanf(input,"%d %d",&inputRe[n0], &inputIm[n0]);
   }
    //printf("%02d: %06d %06d\n", 0, inputRe[1], inputIm[1]);
   fclose(inputFile);
@@ -24,7 +24,7 @@ int main(int argc, char *argv[]){
   printf("--------> Finish Load Input Signal <-------\n\n");   
     
   /********************************************************************************/
-   
+ 
   //sampler memory
   int i;
   sampler_mem * str_smp[NUMBER_OF_DECODERS];
@@ -70,45 +70,43 @@ int main(int argc, char *argv[]){
 
 
   printf("***------------ ALL READY --------------***\n");
-	int n;int tmp0=0,f=0;
+	int complex *inputSignal = malloc(WINDOW_LENGTH*sizeof(int complex));
+	int tmp0=0,f=0,iCh,vga, activeList;
+	int vgaExp[NUMBER_OF_DECODERS],vgaMant[NUMBER_OF_DECODERS],InitFreq[NUMBER_OF_DECODERS];
+
 	for(i=0;i<NUMBER_OF_DECODERS;i++){
 		printf("Clearing decoder %d\n",i);
 		clearDecoder(PTT_DP_LIST[i],wpckg[i], str_cic[i], str_cicSmp[i], str_smp[i], str_demod[i]);
 	}
   
-  for (i0=0;i0<NUMBER_OF_SAMPLES/WINDOW_LENGTH;i0++){
+  for (int i0=0;i0<NUMBER_OF_SAMPLES/WINDOW_LENGTH;i0++){
 	
-  int complex *inputSignal = malloc(WINDOW_LENGTH*sizeof(int complex));
-		
-    printf("***--------- Window processing ---------*** [%d]\n", i0);
+	  printf("***--------- Window processing ---------*** [%d]\n", i0);
 		// Performs input partitioning on the windows of 1280 samples
 		 
-    for (n = 0; n < WINDOW_LENGTH; n++) {
+    for (int n = 0; n < WINDOW_LENGTH; n++) {
       inputSignal[n] = inputRe[WINDOW_LENGTH*i0+n]+inputIm[WINDOW_LENGTH*i0+n]*I;
     }
 
 		UpdateTimeout(PTT_DP_LIST,wpckg);
+		//printf("inputsignal[%d] = %d+%d*I\n",1279,(int) creal(inputSignal[1279]),(int)cimag(inputSignal[1279]));
 
-		if(f==0){
-			tmp0 =	detectLoop(inputSignal, *PTT_DP_LIST);
-		}
-
+		
+		tmp0 =	detectLoop(inputSignal, *PTT_DP_LIST);
+	
 		//DEBUG Purpose
-		if(tmp0){
+		 if(tmp0){
 			printf("New PTT(s) detected!\nStatus of all decoders:\n");
-			for(n=0;n<NUMBER_OF_DECODERS;n++){
+			for(int n=0;n<NUMBER_OF_DECODERS;n++){
 				printf("ch:%d state: %d freq: %d\n",n,PTT_DP_LIST[n]->detect_state, PTT_DP_LIST[n]->freq_idx);
 			}
-			f=1;
 			tmp0=0;
-		}
+		} 
     //Setup Parameters: Frequency, Gain, Controls status of pckg and Detect.
-	 	int iCh,vga, activeList;
-		int vgaExp[NUMBER_OF_DECODERS],vgaMant[NUMBER_OF_DECODERS];
-		int InitFreq[NUMBER_OF_DECODERS];
-		for (iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
+	 	for (iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
+			
 			if(PTT_DP_LIST[iCh]->detect_state==FREQ_DETECTED_TWICE){
-				int vga = VgaGain(PTT_DP_LIST[iCh]->freq_amp);
+				vga = VgaGain(PTT_DP_LIST[iCh]->freq_amp);
 				vgaExp[iCh] = -1*(vga&0x3F);
 				vgaMant[iCh] = (vga>>6)&0xFF;
 				InitFreq[iCh] = PTT_DP_LIST[iCh]->freq_idx<<9;
@@ -118,14 +116,15 @@ int main(int argc, char *argv[]){
 			}
 		}
 		
-
 		//decodes signals from active channels
     for (iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
+			
       if(PTT_DP_LIST[iCh]->detect_state==FREQ_DECODING){
+				
       //if (activeList&(0x1<<iCh)){
         pttA2Demod(inputSignal, InitFreq[iCh], vgaMant[iCh],          vgaExp[iCh], str_demod[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh]);
 
-        for(i1 = 0;i1<nSymb;i1++){
+        for(int i1 = 0;i1<nSymb;i1++){
 					//printf("ch %d s %d l%d\n",iCh,str_demod[iCh]->symbOut[i1],str_demod[iCh]->symbLock[i1]);
 						if(str_demod[iCh]->symbLock[i1]){
 						wpckg[iCh]->total_symbol_cnt++;
@@ -153,10 +152,9 @@ int main(int argc, char *argv[]){
 				}	
       }
     }
-		free(inputSignal);
   }
 
-	
+	free(inputSignal);
   for(i=0;i<NUMBER_OF_DECODERS;i++){
 		free(PTT_DP_LIST[i]);
 		free(str_smp[i]->smplBuffer);   
