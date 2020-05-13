@@ -4,13 +4,14 @@
 void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp, demod_mem * p, mem_cic * str, mem_cic * str1, sampler_mem * str_smp)
 {
 	int iSymb, i0;
-	int complex * inputBlock = malloc(smplPerSymb*sizeof(int complex));
-	int complex * ncoSignal = malloc(smplPerSymb*sizeof(int complex));
-	float complex * cplxMult = malloc(smplPerSymb*sizeof(float complex));
+	
+	int complex inputBlock[smplPerSymb];
+	int complex ncoSignal[smplPerSymb];
+	float complex cplxMult[smplPerSymb];
 	float complex mfSignal[] = {[0 ... smplPerSymb/deciRate-1] = 0+0*I};
 	int ncoFreq, demodSignal[smplPerSymb/deciRate];	
-	int * ncoTheta = malloc(smplPerSymb*sizeof(int));
-	int complex * vgaSignal = malloc((smplPerSymb/deciRate)*sizeof(int));
+	int ncoTheta[smplPerSymb];
+	int complex vgaSignal[smplPerSymb/deciRate];
 	int lutAddr;
 	int complex deciSignal;
 
@@ -103,9 +104,4 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp
 		p->ncoDFreq = lpf;
 		//printf("piAdd %d | p->lfAcc %d | lpf %d \n",piAdd, p->lfAcc,lpf);
 	}
-	free(cplxMult);
-	free(ncoSignal);
-	free(inputBlock);
-	free(ncoTheta);
-	free(vgaSignal);
 }
