@@ -27,16 +27,16 @@ int prevIdx[] = {[0 ... DFT_LENGTH-1]=0};
 *
 */
 
-void calc_mask(int * mask, FreqsRecord_Typedef *PTT_DP_LIST)
+void calc_mask(int * mask, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS])
 {
   int hat_f, hat_f_left, hat_f_right, hat_a, mask_cnt;
   int i,i0,state,L1,L2,L3;
   int gBand = 52, cnt_band;
 
   for (i = 0; i < NUMBER_OF_DECODERS; i++){
-    if(PTT_DP_LIST[i].detect_state != FREQ_NONE){
-      hat_f = PTT_DP_LIST[i].freq_idx;
-      hat_a = PTT_DP_LIST[i].freq_amp;
+    if(PTT_DP_LIST[i]->detect_state != FREQ_NONE){
+      hat_f = PTT_DP_LIST[i]->freq_idx;
+      hat_a = PTT_DP_LIST[i]->freq_amp;
     
             state = 0;
             cnt_band = 0;
@@ -76,55 +76,55 @@ void calc_mask(int * mask, FreqsRecord_Typedef *PTT_DP_LIST)
                 }
         cnt_band++;
 
-//        mask[mask_cnt] = 0xFFFFFFFF;
+        mask[mask_cnt] = 0xFFFFFFFF;
         mask_cnt++;
             }
     }
   }
 }
 //#define microFFT
-unsigned int detectLoop(int complex *inputSignal, FreqsRecord_Typedef *PTT_DP_LIST)
+unsigned int detectLoop(int complex *inputSignal, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS])
 {
 
-	int i, currIdx = 0;
+  int i, currIdx = 0;
     /*int lower_limit = 0, upper_limit = 0;*/
-	unsigned int ret_value = FREQ_NONE, isInPrevIdx;
-	unsigned int peakAmp = 1, currAmp = 0, iPass=0, peakPos, iPrevIdx;
+  unsigned int ret_value = FREQ_NONE, isInPrevIdx;
+  unsigned int peakAmp = 1, currAmp = 0, iPass=0, peakPos, iPrevIdx;
   int mask[] = {[0 ... DFT_LENGTH-1] = DEFAULT_AMP_THRESHOLD};
-	float complex fftSignal[] = {[0 ... DFT_LENGTH-1] = 0+0*I};
-	
-	unsigned int nPass=0, assigned_decoder = 0;
+  float complex fftSignal[] = {[0 ... DFT_LENGTH-1] = 0+0*I};
+  
+  unsigned int nPass=0, assigned_decoder = 0;
     /*save the window of signal in freq*/
     PassSet_Typedef passSet;
 
-	/*Number_of_detected_indexes()
-	* In this loop, passSet stores the uFFT response.
-	* can find the signal frequency through the fft index 
-	* through the equation: f = idx*fs/L, where fs is sampling frequency and
-	* M is the length of FFT.
-	*/
-	
-	for (int n = 0; n < DFT_LENGTH; n++) {
+  /*Number_of_detected_indexes()
+  * In this loop, passSet stores the uFFT response.
+  * can find the signal frequency through the fft index 
+  * through the equation: f = idx*fs/L, where fs is sampling frequency and
+  * M is the length of FFT.
+  */
+  
+  for (int n = 0; n < DFT_LENGTH; n++) {
     if (n<WINDOW_LENGTH) {
       fftSignal[n] = inputSignal[n];
     } else {
       fftSignal[n] = 0;
     }
   }
-		//printf("here! %d\n",DFT_LENGTH);
-#ifdef microFFT	
-    ufft(fftSignal,DFT_LENGTH);		
+    //printf("here! %d\n",DFT_LENGTH);
+#ifdef microFFT 
+    ufft(fftSignal,DFT_LENGTH);   
 #else
-	float complex scratch[DFT_LENGTH];
-	fft(scratch,fftSignal,DFT_LENGTH);
+  float complex scratch[DFT_LENGTH];
+  fft(scratch,fftSignal,DFT_LENGTH);
 #endif
-	
+  
     calc_mask(mask,PTT_DP_LIST);
-		
+    
     /* Compare fft amplitude with mask */
     for(i = 0; i<DFT_LENGTH; i++){
         //printf("[%d]: abs signal: %f, mask: %d\n", i, cabs(signal[i]), mask[i]);
-				fftSignal[i] = fftSignal[i]/(2048);//2048/1.6 keep Vga values
+        fftSignal[i] = fftSignal[i]/(2048);//2048/1.6 keep Vga values
         if(cabs(fftSignal[i])>mask[i]){
             /*printf("abs signal: %f, mask: %d\n", cabs(signal[i]), mask[i]);*/
             passSet.Idx[nPass] = i;
@@ -132,20 +132,20 @@ unsigned int detectLoop(int complex *inputSignal, FreqsRecord_Typedef *PTT_DP_LI
             nPass++;
         }
     }
-		
     //printf("nPass: %d\n",nPass);
     while(peakAmp > 0 && assigned_decoder != FREQ_INVALID){
 
-        assigned_decoder = FREQ_INVALID;
+        assigned_decoder = (unsigned int)FREQ_INVALID;
         //Loop for find decoder free
         for (i = 0; i < NUMBER_OF_DECODERS; i++){
-            if(PTT_DP_LIST[i].detect_state == FREQ_NONE){
-                //printf("Decoder free %d\n",i);
+            if(PTT_DP_LIST[i]->detect_state == FREQ_NONE){
+                printf("Decoder free %d\n",i);
                 assigned_decoder=i;
                 break;
             }
         }
-				
+        
+        //printf("assigned_decoder %d\n",assigned_decoder);
         calc_mask(mask,PTT_DP_LIST);
 
         peakAmp = 0;iPass = 0;
@@ -166,7 +166,7 @@ unsigned int detectLoop(int complex *inputSignal, FreqsRecord_Typedef *PTT_DP_LI
                         //Assign the signal that passes as a peak
                         peakAmp = currAmp;
                         //peakIdx = currIdx;
-												peakPos = iPass;
+                        peakPos = iPass;
                     }
                 }
             }
@@ -174,19 +174,20 @@ unsigned int detectLoop(int complex *inputSignal, FreqsRecord_Typedef *PTT_DP_LI
         }
      //Update Detected PttDpList
         if(peakAmp>0){
-            PTT_DP_LIST[assigned_decoder].freq_idx
+            //printf("assigned_decoder %d\n",assigned_decoder);
+            PTT_DP_LIST[assigned_decoder]->freq_idx
                 = passSet.Idx[peakPos];
-            PTT_DP_LIST[assigned_decoder].freq_amp = peakAmp;
-            PTT_DP_LIST[assigned_decoder].detect_state = FREQ_DETECTED_TWICE;
-						PTT_DP_LIST[assigned_decoder].timeout = DEFAULT_TIMEOUT;
-						//printf("freq detected: %d\n AMP: %d \n",passSet.Idx[peakPos], peakAmp);
+            PTT_DP_LIST[assigned_decoder]->freq_amp = peakAmp;
+            PTT_DP_LIST[assigned_decoder]->detect_state = FREQ_DETECTED_TWICE;
+            PTT_DP_LIST[assigned_decoder]->timeout = DEFAULT_TIMEOUT;
+            //printf("freq detected: %d\n AMP: %d \n",passSet.Idx[peakPos], peakAmp);
             ret_value = 1;
         }
-				
+        
     } //while
    //Update prevPassIdx
     memset(prevIdx, 0, sizeof(prevIdx));
-		
+    
   for (iPass=0; iPass < nPass; iPass++){
     prevIdx[passSet.Idx[iPass]]=1;
   }
