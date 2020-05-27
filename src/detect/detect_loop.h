@@ -12,7 +12,7 @@
 #define FREQ_INVALID	-1
 #define N_SAMPLE (8192)
 #define DFT_LENGTH (2048)
-#define DEFAULT_AMP_THRESHOLD (150)
+#define DEFAULT_AMP_THRESHOLD (500)
 #define DEFAULT_TIMEOUT (101)
 #define WINDOW_LENGTH (1280)
 /*	DDS_FreqsRecord_Typedef will be passed to the next processing
@@ -39,8 +39,8 @@ typedef enum {
 	FREQ_DECODING//2
 } FreqsState_Typedef;
 
-void calc_mask(int * mask, FreqsRecord_Typedef *PTT_DP_LIST);
+void calc_mask(int * mask,FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS]);
 
-unsigned int detectLoop(int complex *inputSignal, FreqsRecord_Typedef *PTT_DP_LIST);
+unsigned int detectLoop(int complex *inputSignal, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS]);
 
 #endif
