@@ -5,7 +5,7 @@
 
 int main(int argc, char *argv[]){
   int n0;
-  FILE* inputFile = fopen("inputSignal.txt","r");
+  FILE* inputFile = fopen("inputSignal12.txt","r");
 
   if(inputFile == NULL){
     printf("Can't open file!\n");
@@ -78,7 +78,9 @@ int main(int argc, char *argv[]){
 		printf("Clearing decoder %d\n",i);
 		clearDecoder(PTT_DP_LIST[i],wpckg[i], str_cic[i], str_cicSmp[i], str_smp[i], str_demod[i]);
 	}
+  #define NSIM (150)
   
+  for(int n0; n0<NSIM;n0++){
   for (int i0=0;i0<NUMBER_OF_SAMPLES/WINDOW_LENGTH;i0++){
 	
 	  printf("***--------- Window processing ---------*** [%d]\n", i0);
@@ -153,7 +155,7 @@ int main(int argc, char *argv[]){
       }
     }
   }
-
+}//end of simulation
 	free(inputSignal);
   for(i=0;i<NUMBER_OF_DECODERS;i++){
 		free(PTT_DP_LIST[i]);
