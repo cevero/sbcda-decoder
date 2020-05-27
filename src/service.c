@@ -1,15 +1,12 @@
 #include "service.h"
-
 void incAndOvFlow(int prevAcc,int inc,int nInc,int accWidth, int * accOut)
 {
 	int acc = prevAcc;
 	int upLimit = pow(2,accWidth);
 	int iSmpl;
 
-	//printf("0 acc: %d upLimit: %d\n",acc, upLimit);
 	for (iSmpl=0;iSmpl<nInc;iSmpl++){
 	  acc = acc + inc;
-	  //printf("%d acc: %d upLimit: %d\n",iSmpl, acc, upLimit);
 	  if (acc >= upLimit){
 	    acc = acc-upLimit;
 	  }else if (acc < 0){
@@ -116,9 +113,6 @@ void frameSynch(PTTPackage_Typedef * wpckg, int pttd_symbol)
 							== (SYNCH_PATTERN & SYNCH_MIN_MASK)) { // match!!!
 				wpckg->status = PTT_DATA;
 				wpckg->symb_cnt = 0;
-				// printf("FS ok\n\n");
-				// printf("%x\n\n",wpckg->synch_patternA);
-				// printf("%x\n\n",wpckg->synch_patternB);
 			}
 		}
 	}
@@ -139,7 +133,6 @@ void readData(PTTPackage_Typedef * wpckg, int pttd_symbol)
 	// all message length symbols were received
 	if (wpckg->symb_cnt == MAX_SYMBOLS_PER_WINDOW) {
 		for (i0 = 0; i0 < MAX_SYMBOLS_PER_WINDOW; i0 += 2) {
-			// bit_cnt>>3 == bit_cnt / 8 => gives the byte position on the stream
 			tmp0 = wpckg->userMsg[(wpckg->bit_cnt) >> 3];
 			tmp0 <<= 1;
 			if (decodeBit(wpckg->symb_array[i0],
@@ -158,7 +151,6 @@ void readData(PTTPackage_Typedef * wpckg, int pttd_symbol)
 	if(wpckg->bit_cnt==4){
 		msgBitLength = calcMessageLength(wpckg->userMsg[0]&0xF);
 		wpckg->msgByteLength = msgBitLength>>3;
-		//printf("msgL %d eC %d",msgBitLength,wpckg->errorCode);
 	}
 	userData = (wpckg->bit_cnt > 4); //Next msgLength store ID and userData
 	if (wpckg->bit_cnt >= (wpckg->msgByteLength<<3) && userData) {

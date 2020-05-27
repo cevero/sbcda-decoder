@@ -26,7 +26,6 @@ void clearDecoder(FreqsRecord_Typedef * PTT_DP_LIST,PTTPackage_Typedef * wpckg, 
    	str_cicSmp->previousAccIm[i0]=0;
   }
   
-  //
   for (i0 = 0; i0<nSymb;i0++){
    	str_demod->symbLock[i0] = 0;
    	str_demod->symbOut[i0] = 0;
@@ -111,18 +110,14 @@ void decoder(int complex *inputSignal, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_
 	//decodes signals from active channels
   for (iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
     if(PTT_DP_LIST[iCh]->detect_state==FREQ_DECODING){
-    //if (activeList&(0x1<<iCh)){
       pttA2Demod(inputSignal, InitFreq[iCh], vgaMant[iCh],          vgaExp[iCh], str_demod[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh]);
 
       for(i1 = 0;i1<nSymb;i1++){
-			//printf("ch %d s %d l%d\n",iCh,str_demod[iCh]->symbOut[i1],str_demod[iCh]->symbLock[i1]);
 				if(str_demod[iCh]->symbLock[i1]){
 					wpckg[iCh]->total_symbol_cnt++;
 					if(wpckg[iCh]->status==PTT_FRAME_SYNCH){
-						//printf("FS [%d],%d\n",iCh,i1);
 						frameSynch(wpckg[iCh],str_demod[iCh]->symbOut[i1]);		
 					}else if(wpckg[iCh]->status==PTT_DATA){
-						//printf("\n DATA %d %d\n",i1,wpckg[iCh]->bit_cnt);
 						readData(wpckg[iCh],str_demod[iCh]->symbOut[i1]);
 						if(wpckg[iCh]->status==PTT_READY){
 							//fill the package and clear the decoder

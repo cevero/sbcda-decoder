@@ -1,6 +1,4 @@
 #include "../service.h"
-// #include "cicFilterCplxStep.h"
-// #include "sampler.h"
 #include "pttA2Demod.h"
 
 #define NUMBER_OF_SAMPLES 140800
@@ -21,9 +19,7 @@ int main(int argc, char *argv[]){
 
   for (i0=0;fgets(input,sizeof(input), inputFile) != NULL;i0++){
     sscanf(input,"%d %d",&inputRe[i0], &inputIm[i0]);
-    //printf("%02d: %06d %06d\n", i0, inputRe[i0], inputIm[i0]);
   }
-	 //printf("%02d: %06d %06d\n", 0, inputRe[1], inputIm[1]);
    fclose(inputFile);
 
 	 inputFile = fopen("test_files/inputParameters.txt","r");
@@ -36,7 +32,6 @@ int main(int argc, char *argv[]){
   int ncoInitFreq, vgaMant, vgaExp;
 	for (i0=0;fgets(input,sizeof(input), inputFile) != NULL;i0++){
     sscanf(input,"%d %d %d",&ncoInitFreq, &vgaMant, &vgaExp);
-    //printf("%02d: %06d %06d\n", ncoInitFreq, vgaMant, vgaExp);
 	}
   fclose(inputFile);
 
@@ -54,12 +49,10 @@ int main(int argc, char *argv[]){
 
   for (i0=0;fgets(output,sizeof(output), outputFile) != NULL;i0++){
     sscanf(output,"%d %d %d",&ch[i0], &RefsymbLock[i0],&Refsymb[i0]);
-    //printf("%d: [%d]  %d\n", i0, RefsymbLock[i0],Refsymb[i0]);
   }
   fclose(outputFile); 
 
   printf("-------> Finish Load Input Signal <-------\n\n");		
-  //printf("%d\n", inputIm[639]);
    
   /********************************************************************************/
   int previousAccRe;
@@ -119,25 +112,13 @@ int main(int argc, char *argv[]){
   for (i0=0;i0< NUMBER_OF_SAMPLES/(smplPerSymb*nSymb) ;i0++){
     for(i1=0;i1<inputSeqW;i1++){
       inputSignal[i1] = inputRe[smplPerSymb*nSymb*i0+i1]+inputIm[smplPerSymb*nSymb*i0+i1]*I;
-			//printf("%f %f\n", creal(inputSignal[i1]),cimag(inputSignal[i1]));
     }
-		//printf("%f %f\n", creal(inputSignal[1279]),cimag(inputSignal[1279]));
-    //printf("***---------- processing --------------**** [%d]\n", i0);
-		//break;
 		pttA2Demod(inputSignal, ncoInitFreq, vgaMant, vgaExp, p, str, str1, str_smp);
-		//printf("***---------- processing --------------**** [%d]\n", i0);
     for(i1=0;i1<nSymb;i1++){
-    	//printf("%d %d\n", p->symbLock[i1],p->symbOut[i1]);
 			symbOutBuffer[0][i1+i0*nSymb] = p->symbOut[i1];
 			symbOutBuffer[1][i1+i0*nSymb] = p->symbLock[i1];
     }
   }
-
-/* 	printf("***---------- results --------------**** [%d]\n", i0);
-	for(i1=0;i1<90;i1++){
-    printf("%d: %d %d\n",i1,symbOutBuffer[1][i1], symbOutBuffer[0][i1]);
-  }
- */
 	free(str_smp);
 	free(str_smp->smplBuffer);	
 	free(str1);

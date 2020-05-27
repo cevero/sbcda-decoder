@@ -25,7 +25,6 @@ void cicFilterCplxStep(float complex *inputSignal, mem_cic * str, float complex 
   accDlyIdx = str->accDlyIdx;
 	
   for (iSmpl=0;iSmpl<inputLength;iSmpl++){
-		//printf("[%d] inRe %f\n",iSmpl, creal(inputSignal[iSmpl]));
     // acumulate with overflow  
     accRe = accRe + creal(inputSignal[iSmpl]);    
     if (accRe >= maxValDiv2){
@@ -64,7 +63,6 @@ void cicFilterCplxStep(float complex *inputSignal, mem_cic * str, float complex 
       // update buffer with previous decimator output
       previousAccIm[accDlyIdx] = accIm;    
       outputSignal[iSmplOut] = (double) diffRe + (double) diffIm*I;
-			//printf("Re %f Im %f\n",creal(outputSignal[iSmplOut]),cimag(outputSignal[iSmplOut]));
       // update buffer index
       if (accDlyIdx>=delay-1){
         accDlyIdx = 0;

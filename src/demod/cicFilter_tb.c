@@ -1,5 +1,4 @@
 #include "../service.h"
-// #include "sampler.h"
 #include "cicFilterCplxStep.h"
 #define NUMBER_OF_SAMPLES 640
 #define NOUT	NUMBER_OF_SAMPLES/deciRate
@@ -20,11 +19,9 @@ int main(int argc, char *argv[]){
    int inputIm[NUMBER_OF_SAMPLES];
    for (i0=0;fgets(input,sizeof(input), inputFile) != NULL;i0++){
        sscanf(input,"%d %d",&inputRe[i0], &inputIm[i0]);
-       //printf("%02d: %06d %06d\n", i0, inputRe[i0], inputIm[i0]);
    }
    fclose(inputFile);
    printf("-------> Finish Load Input Signal <-------\n\n");		
-   //printf("%d\n", inputIm[639]);
    /********************************************************************************/
    int previousAccRe;
    int previousAccIm;
@@ -48,12 +45,9 @@ int main(int argc, char *argv[]){
    for (i0=0;i0<NUMBER_OF_SAMPLES/(smplPerSymb*deciRate);i0++){
        for(i1=0;i1<inputSeqW;i1++){
            cplxMultSignal[i1] = inputRe[smplPerSymb*deciRate*i0+i1]+inputIm[smplPerSymb*deciRate*i
-						//printf("%f %f\n", creal(cplxMultSignal[i1]),cimag(cplxMultSignal[i1]));
        }
-       //printf("***---------- processing --------------**** [%d]\n", i0);
        cicFilterCplxStep(cplxMultSignal, str, demodSignal,deciRate, delayIdx,inputSeqW);
        for(i1=0;i1<smplPerSymb;i1++){
-       	//printf("%f %f*i\n", creal(demodSignal[i1]),cimag(demodSignal[i1]));
 					outputSignal[i0*smplPerSymb+i1] = demodSignal[i1];
        }
    }
@@ -70,14 +64,11 @@ int main(int argc, char *argv[]){
 		int nErr = 0;
    for (i0=0;fgets(output,sizeof(output), outputFile) != NULL;i0++){
        sscanf(output,"%f %f",&outRe[i0], &outIm[i0]);
-       //printf("%d: %f %f\n", i0, outRe[i0],outIm[i0]);
 			
    }
    fclose(outputFile);
    // Compare output file with outputSignal from code		
 		for(i0 = 0;i0<NOUT;i0++ ){
-			//printf("Got: %f %f \n",creal(outputSignal[i0]),cimag(outputSignal[i0]));
-			//printf("Expected: %f %f \n",outRe[i0],outIm[i0]);	
 			if(((creal(outputSignal[i0]))-outRe[i0]>3) || ((int)(cimag(outputSignal[i0]))-outIm[i0])>3){ 
 				nErr++;
 				printf("~~~~~ Error %d ~~~~~\n",i0);

@@ -18,7 +18,6 @@ int main(){
   for (n0=0;fgets(input,sizeof(input), inputFile) != NULL;n0++){
     sscanf(input,"%d %d",&inputRe[n0], &inputIm[n0]);
   }
-  //printf("%02d: %06d %06d\n", 0, inputRe[14], inputIm[14]);
   fclose(inputFile);
 
   printf("--------> Finish Load Input Signal <-------\n\n");   
@@ -83,7 +82,6 @@ int main(){
   
   for(int n0; n0<NSIM;n0++){
   for (i0=0;i0<NUMBER_OF_SAMPLES/WINDOW_LENGTH;i0++){
-  //for (i0=0;i0<20;i0++){
     printf("***--------- Window processing ---------*** [%d]\n", i0);
     // Performs input partitioning on the windows of 1280 samples
      
@@ -92,9 +90,7 @@ int main(){
     }
 
     UpdateTimeout(PTT_DP_LIST,wpckg);
-    //printf("inputsignal[%d] = %d+%d*I\n",1279,(int) creal(inputSignal[1279]),(int)cimag(inputSignal[1279]));
 
-    //printf("Detecting \n");
     tmp0 =  detectLoop(inputSignal, PTT_DP_LIST);
     
     //DEBUG Purpose
@@ -122,19 +118,15 @@ int main(){
     
     //decodes signals from active channels
     for (iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
-      //printf("Demoding %d\n",iCh);
       if(PTT_DP_LIST[iCh]->detect_state==FREQ_DECODING){
         pttA2Demod(inputSignal, InitFreq[iCh], vgaMant[iCh],          vgaExp[iCh], str_demod[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh]);
         
         for(i1 = 0;i1<nSymb;i1++){
-          //printf("ch %d s %d l%d\n",iCh,str_demod[iCh]->symbOut[i1],str_demod[iCh]->symbLock[i1]);
             if(str_demod[iCh]->symbLock[i1]){
             wpckg[iCh]->total_symbol_cnt++;
             if(wpckg[iCh]->status==PTT_FRAME_SYNCH){
-              //printf("FS [%d],%d\n",iCh,i1);
               frameSynch(wpckg[iCh],str_demod[iCh]->symbOut[i1]);   
             }else if(wpckg[iCh]->status==PTT_DATA){
-              //printf("\n DATA %d %d\n",i1,wpckg[iCh]->bit_cnt);
               readData(wpckg[iCh],str_demod[iCh]->symbOut[i1]);
               if(wpckg[iCh]->status==PTT_READY){
                 //fill the package and clear the decoder
@@ -146,11 +138,6 @@ int main(){
                 printf("Clearing decoder %d\n",iCh);
                 clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh], str_demod[iCh]);
                 //DEBUG Purpose
-                //  printf("Status of all decoders:\n");
-                //  for(n=0;n<NUMBER_OF_DECODERS;n++){
-                //    printf("ch:%d state: %d freq: %d\n",n,PTT_DP_LIST[n]->detect_state, PTT_DP_LIST[n]->freq_idx);
-                //  printf("total_symbol_cnt %d\n", wpckg[n]->total_symbol_cnt);
-                // }
                 
               }
             }else if(wpckg[iCh]->status==PTT_ERROR){
