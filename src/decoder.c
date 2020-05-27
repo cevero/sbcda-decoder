@@ -85,7 +85,7 @@ void decoder(int complex *inputSignal, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_
 	int vgaExp[NUMBER_OF_DECODERS],vgaMant[NUMBER_OF_DECODERS];
 	int InitFreq[NUMBER_OF_DECODERS];
 
-	tmp0 = detectLoop(inputSignal, *PTT_DP_LIST);	
+	tmp0 = detectLoop(inputSignal, PTT_DP_LIST);	
 	
 	//DEBUG Purpose
 	if(tmp0){
