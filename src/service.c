@@ -82,7 +82,7 @@ unsigned int calcMessageLength(unsigned int msgByteLength)
 }
 
 #define MAX_SYMBOLS_PER_WINDOW 8
-#define MAX_SYNCH_SYMBOLS 64
+#define MAX_SYNCH_SYMBOLS 128
 #define SYNCH_MIN_MASK 0x3FF
 #define SYNCH_PATTERN	0xFFFE2F
 void frameSynch(PTTPackage_Typedef * wpckg, int pttd_symbol)
