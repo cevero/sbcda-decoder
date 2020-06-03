@@ -3,7 +3,7 @@
 #include <omp.h>
 
 
-#define NUMTHREAD 2
+#define NUMTHREAD 8
 
 void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int
         vgaExp, demod_mem * p, mem_cic * str, mem_cic * str1, sampler_mem * str_smp)
@@ -48,8 +48,7 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int
 		* floor(float)
 		*/		
     int SMPperSymb = smplPerSymb;
-#pragma omp parallel for num_threads(NUMTHREAD) shared(cplxMult) private \
-        (SMPperSymb)
+//#pragma omp parallel for num_threads(NUMTHREAD) default (none) shared(cplxMult,inputBlock,ncoSignal) private (SMPperSymb)
 		for (i0=0;i0<SMPperSymb;i0++){
 			cplxMult[i0] = inputBlock[i0]*ncoSignal[i0];
 			cplxMult[i0] = ((float complex) cplxMult[i0])*pow(2,-(ncoAmpW-1));

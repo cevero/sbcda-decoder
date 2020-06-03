@@ -1,11 +1,13 @@
 #include "decoder.h"
 #include <omp.h>
+#include <malloc.h>
 
 #define NUMBER_OF_SAMPLES 153600//140800
 
 int main(){
   int n0;
   printf("--------> Loading Input Signal <-------\n\n");
+
   FILE* inputFile = fopen("inputSignal12.txt","r");
 
   if(inputFile == NULL){
@@ -27,11 +29,16 @@ int main(){
  
   //sampler memory
   int i;
-  sampler_mem * str_smp[NUMBER_OF_DECODERS];
-  for (i = 0; i < NUMBER_OF_DECODERS; ++i){
-    str_smp[i] = malloc(sizeof(sampler_mem));
-    str_smp[i]->smplBuffer = malloc(2*smplPerSymb*(sizeof(int)));
-  }
+  sampler_mem *str_smp[NUMBER_OF_DECODERS];
+  int n_decod = NUMBER_OF_DECODERS;
+printf("debug: %d",smplPerSymb);
+
+//#pragma omp parallel for default (none) shared(str_smp) private(n_decod) 
+      for (i = 0; i < n_decod; ++i)
+      {
+        str_smp[i] = malloc (sizeof(sampler_mem));
+        str_smp[i]->smplBuffer = calloc(2,smplPerSymb*(sizeof(int)));
+      }
 
   //CIC filter of demod
   mem_cic * str_cic[NUMBER_OF_DECODERS];
@@ -40,6 +47,7 @@ int main(){
     str_cic[i]->previousAccRe = malloc(delayIdx*sizeof(int));
     str_cic[i]->previousAccIm = malloc(delayIdx*sizeof(int));
   }
+
   //CIC filter of sampler
   mem_cic * str_cicSmp[NUMBER_OF_DECODERS];
   for (i = 0; i < NUMBER_OF_DECODERS; ++i){
@@ -97,6 +105,7 @@ int main(){
     //DEBUG Purpose
      if(tmp0){
       printf("New PTT(s) detected!\nStatus of all decoders:\n");
+
       for(n=0;n<NUMBER_OF_DECODERS;n++){
         printf("ch:%d state: %d freq: %4d amp: %4d\n",n,PTT_DP_LIST[n]->detect_state, PTT_DP_LIST[n]->freq_idx, PTT_DP_LIST[n]->freq_amp);
       }
@@ -118,36 +127,48 @@ int main(){
     }
     
     //decodes signals from active channels
-//#pragma omp parallel for default (none) shared(str_smp,str_cic,str_demod,vgaMant,vgaExp,PTT_DP_LIST,InitFreq,str_cicSmp,i1,i2,wpckg) private(inputSignal)
-    for (iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
-      if(PTT_DP_LIST[iCh]->detect_state==FREQ_DECODING){
-        pttA2Demod(inputSignal, InitFreq[iCh], vgaMant[iCh],
-        vgaExp[iCh], str_demod[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh]);
-        for(i1 = 0;i1<nSymb;i1++){
-            if(str_demod[iCh]->symbLock[i1]){
+#pragma omp parallel for default (shared) num_threads(1)
+    for (iCh=0;iCh<NUMBER_OF_DECODERS;iCh++)
+    {
+      if(PTT_DP_LIST[iCh]->detect_state==FREQ_DECODING)
+      {
+        pttA2Demod(inputSignal, InitFreq[iCh], vgaMant[iCh],vgaExp[iCh], str_demod[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh]);
+
+        for(i1 = 0;i1<nSymb;i1++)
+        {
+            if(str_demod[iCh]->symbLock[i1])
+            {
             wpckg[iCh]->total_symbol_cnt++;
-            if(wpckg[iCh]->status==PTT_FRAME_SYNCH){
-              frameSynch(wpckg[iCh],str_demod[iCh]->symbOut[i1]);   
-            }else if(wpckg[iCh]->status==PTT_DATA){
-              readData(wpckg[iCh],str_demod[iCh]->symbOut[i1]);
-              if(wpckg[iCh]->status==PTT_READY){
-                //fill the package and clear the decoder
-                printf("ready!\n");
-                printf("|%d|\n",iCh);
-                for(i2=0;i2<wpckg[iCh]->msgByteLength;i2++){
-                  printf("%x\n",wpckg[iCh]->userMsg[i2]);
+
+                if(wpckg[iCh]->status==PTT_FRAME_SYNCH)
+                {
+                  frameSynch(wpckg[iCh],str_demod[iCh]->symbOut[i1]);   
                 }
-                printf("Clearing decoder %d\n",iCh);
-                clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh], str_demod[iCh]);
-                //DEBUG Purpose
-                
-              }
-            }else if(wpckg[iCh]->status==PTT_ERROR){
-              printf("Clearing decoder %d\n",iCh);
-              clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh], str_demod[iCh]);
+                else if(wpckg[iCh]->status==PTT_DATA)
+                {
+                  readData(wpckg[iCh],str_demod[iCh]->symbOut[i1]);
+                  if(wpckg[iCh]->status==PTT_READY)
+                  {
+                    //fill the package and clear the decoder
+                    printf("ready!\n");
+                    printf("|%d|\n",iCh);
+                    for(i2=0;i2<wpckg[iCh]->msgByteLength;i2++)
+                    {
+                      printf("%x\n",wpckg[iCh]->userMsg[i2]);
+                    }
+                    printf("Clearing decoder %d\n",iCh);
+                    clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh], str_demod[iCh]);
+                    //DEBUG Purpose
+                    
+                  }
+                }
+                else if(wpckg[iCh]->status==PTT_ERROR)
+                {
+                  printf("Clearing decoder %d\n",iCh);
+                  clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh], str_demod[iCh]);
+                }
             }
-          }
-        } 
+        }
       }
     }
     
