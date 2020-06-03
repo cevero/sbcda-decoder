@@ -127,7 +127,7 @@ printf("debug: %d",smplPerSymb);
     }
     
     //decodes signals from active channels
-#pragma omp parallel for default (shared)/* private()*/ num_threads(4)
+#pragma omp parallel for default (shared) private(decoder_index,i1,i2) num_threads(4)
     for (decoder_index=0;decoder_index<NUMBER_OF_DECODERS;decoder_index++)
     {
       if(PTT_DP_LIST[decoder_index]->detect_state==FREQ_DECODING)
