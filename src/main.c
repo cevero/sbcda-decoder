@@ -79,7 +79,7 @@ printf("debug: %d",smplPerSymb);
 
   printf("***------------ ALL READY --------------***\n");
   int complex *inputSignal = malloc(WINDOW_LENGTH*sizeof(int complex));
-  int tmp0=0,f=0,iCh,vga, activeList, n, i0,i1,i2;
+  int tmp0=0,f=0,decoder_index,vga, activeList, n, i0,i1,i2;
   int vgaExp[NUMBER_OF_DECODERS],vgaMant[NUMBER_OF_DECODERS],InitFreq[NUMBER_OF_DECODERS];
 
   for(i=0;i<NUMBER_OF_DECODERS;i++){
@@ -113,59 +113,60 @@ printf("debug: %d",smplPerSymb);
     } 
     //Setup Parameters: Frequency, Gain, Controls status of pckg and Detect.
     
-    for (iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
+    for (decoder_index=0;decoder_index<NUMBER_OF_DECODERS;decoder_index++){
       
-      if(PTT_DP_LIST[iCh]->detect_state==FREQ_DETECTED_TWICE){
-        vga = VgaGain(PTT_DP_LIST[iCh]->freq_amp);
-        vgaExp[iCh] = -1*(vga&0x3F);
-        vgaMant[iCh] = (vga>>6)&0xFF;
-        InitFreq[iCh] = PTT_DP_LIST[iCh]->freq_idx<<9;
-        printf("[%d]: mant %d exp %d\n",iCh, vgaMant[iCh],vgaExp[iCh]);
-        PTT_DP_LIST[iCh]->detect_state=FREQ_DECODING;
-        wpckg[iCh]->status=PTT_FRAME_SYNCH;
+      if(PTT_DP_LIST[decoder_index]->detect_state==FREQ_DETECTED_TWICE){
+        vga = VgaGain(PTT_DP_LIST[decoder_index]->freq_amp);
+        vgaExp[decoder_index] = -1*(vga&0x3F);
+        vgaMant[decoder_index] = (vga>>6)&0xFF;
+        InitFreq[decoder_index] = PTT_DP_LIST[decoder_index]->freq_idx<<9;
+        printf("[%d]: mant %d exp %d\n",decoder_index, vgaMant[decoder_index],vgaExp[decoder_index]);
+        PTT_DP_LIST[decoder_index]->detect_state=FREQ_DECODING;
+        wpckg[decoder_index]->status=PTT_FRAME_SYNCH;
       }
     }
     
     //decodes signals from active channels
-#pragma omp parallel for default (shared) num_threads(1)
-    for (iCh=0;iCh<NUMBER_OF_DECODERS;iCh++)
+#pragma omp parallel for default (shared)/* private()*/ num_threads(4)
+    for (decoder_index=0;decoder_index<NUMBER_OF_DECODERS;decoder_index++)
     {
-      if(PTT_DP_LIST[iCh]->detect_state==FREQ_DECODING)
+      if(PTT_DP_LIST[decoder_index]->detect_state==FREQ_DECODING)
       {
-        pttA2Demod(inputSignal, InitFreq[iCh], vgaMant[iCh],vgaExp[iCh], str_demod[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh]);
+        pttA2Demod(inputSignal, InitFreq[decoder_index], vgaMant[decoder_index],vgaExp[decoder_index],
+                str_demod[decoder_index], str_cic[decoder_index], str_cicSmp[decoder_index], str_smp[decoder_index]);
 
         for(i1 = 0;i1<nSymb;i1++)
         {
-            if(str_demod[iCh]->symbLock[i1])
+            if(str_demod[decoder_index]->symbLock[i1])
             {
-            wpckg[iCh]->total_symbol_cnt++;
+            wpckg[decoder_index]->total_symbol_cnt++;
 
-                if(wpckg[iCh]->status==PTT_FRAME_SYNCH)
+                if(wpckg[decoder_index]->status==PTT_FRAME_SYNCH)
                 {
-                  frameSynch(wpckg[iCh],str_demod[iCh]->symbOut[i1]);   
+                  frameSynch(wpckg[decoder_index],str_demod[decoder_index]->symbOut[i1]);   
                 }
-                else if(wpckg[iCh]->status==PTT_DATA)
+                else if(wpckg[decoder_index]->status==PTT_DATA)
                 {
-                  readData(wpckg[iCh],str_demod[iCh]->symbOut[i1]);
-                  if(wpckg[iCh]->status==PTT_READY)
+                  readData(wpckg[decoder_index],str_demod[decoder_index]->symbOut[i1]);
+
+                  if(wpckg[decoder_index]->status==PTT_READY)
                   {
                     //fill the package and clear the decoder
                     printf("ready!\n");
-                    printf("|%d|\n",iCh);
-                    for(i2=0;i2<wpckg[iCh]->msgByteLength;i2++)
+                    printf("|%d|\n",decoder_index);
+                    for(i2=0;i2<wpckg[decoder_index]->msgByteLength;i2++)
                     {
-                      printf("%x\n",wpckg[iCh]->userMsg[i2]);
+                      printf("%x\n",wpckg[decoder_index]->userMsg[i2]);
                     }
-                    printf("Clearing decoder %d\n",iCh);
-                    clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh], str_demod[iCh]);
+                    printf("Clearing decoder %d\n",decoder_index);
+                    clearDecoder(PTT_DP_LIST[decoder_index],wpckg[decoder_index], str_cic[decoder_index], str_cicSmp[decoder_index], str_smp[decoder_index], str_demod[decoder_index]);
                     //DEBUG Purpose
-                    
                   }
                 }
-                else if(wpckg[iCh]->status==PTT_ERROR)
+                else if(wpckg[decoder_index]->status==PTT_ERROR)
                 {
-                  printf("Clearing decoder %d\n",iCh);
-                  clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh], str_demod[iCh]);
+                  printf("Clearing decoder %d\n",decoder_index);
+                  clearDecoder(PTT_DP_LIST[decoder_index],wpckg[decoder_index], str_cic[decoder_index], str_cicSmp[decoder_index], str_smp[decoder_index], str_demod[decoder_index]);
                 }
             }
         }
