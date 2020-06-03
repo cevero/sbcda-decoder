@@ -6,6 +6,7 @@
 
 int main(){
   int n0;
+  int nthreads = 4;
   printf("--------> Loading Input Signal <-------\n\n");
 
   FILE* inputFile = fopen("inputSignal12.txt","r");
@@ -127,7 +128,8 @@ printf("debug: %d",smplPerSymb);
     }
     
     //decodes signals from active channels
-#pragma omp parallel for default (shared) private(decoder_index,i1,i2) num_threads(4)
+
+//#pragma omp parallel for default (shared) private(decoder_index,i1,i2) num_threads(nthreads)
     for (decoder_index=0;decoder_index<NUMBER_OF_DECODERS;decoder_index++)
     {
       if(PTT_DP_LIST[decoder_index]->detect_state==FREQ_DECODING)
