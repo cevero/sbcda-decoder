@@ -5,7 +5,8 @@
 
 #define NUMTHREAD 2
 
-void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp, demod_mem * p, mem_cic * str, mem_cic * str1, sampler_mem * str_smp)
+void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int
+        vgaExp, demod_mem * p, mem_cic * str, mem_cic * str1, sampler_mem * str_smp)
 {
 	int iSymb, i0;
 	
@@ -46,9 +47,10 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp
 		*	Complex Multiplier
 		* floor(float)
 		*/		
-
-#pragma omp parallel for num_threads(NUMTHREAD) shared(cplxMult)
-		for (i0=0;i0<smplPerSymb;i0++){
+    int SMPperSymb = smplPerSymb;
+#pragma omp parallel for num_threads(NUMTHREAD) shared(cplxMult) private \
+        (SMPperSymb)
+		for (i0=0;i0<SMPperSymb;i0++){
 			cplxMult[i0] = inputBlock[i0]*ncoSignal[i0];
 			cplxMult[i0] = ((float complex) cplxMult[i0])*pow(2,-(ncoAmpW-1));
 			cplxMult[i0] = floor(creal(cplxMult[i0]))+floor(cimag(cplxMult[i0]))*I;

@@ -1,4 +1,5 @@
 #include "decoder.h"
+#include <omp.h>
 
 #define NUMBER_OF_SAMPLES 153600//140800
 
@@ -117,10 +118,11 @@ int main(){
     }
     
     //decodes signals from active channels
+//#pragma omp parallel for default (none) shared(str_smp,str_cic,str_demod,vgaMant,vgaExp,PTT_DP_LIST,InitFreq,str_cicSmp,i1,i2,wpckg) private(inputSignal)
     for (iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
       if(PTT_DP_LIST[iCh]->detect_state==FREQ_DECODING){
-        pttA2Demod(inputSignal, InitFreq[iCh], vgaMant[iCh],          vgaExp[iCh], str_demod[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh]);
-        
+        pttA2Demod(inputSignal, InitFreq[iCh], vgaMant[iCh],
+        vgaExp[iCh], str_demod[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh]);
         for(i1 = 0;i1<nSymb;i1++){
             if(str_demod[iCh]->symbLock[i1]){
             wpckg[iCh]->total_symbol_cnt++;
