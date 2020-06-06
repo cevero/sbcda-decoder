@@ -6,7 +6,7 @@
 
 int main(){
   int n0;
-  int nthreads = 4;
+  //int nthreads = 4;
   printf("--------> Loading Input Signal <-------\n\n");
 
   FILE* inputFile = fopen("inputSignal12.txt","r");
@@ -34,12 +34,11 @@ int main(){
   int n_decod = NUMBER_OF_DECODERS;
 printf("debug: %d",smplPerSymb);
 
-//#pragma omp parallel for default (none) shared(str_smp) private(n_decod) 
-      for (i = 0; i < n_decod; ++i)
-      {
-        str_smp[i] = malloc (sizeof(sampler_mem));
-        str_smp[i]->smplBuffer = calloc(2,smplPerSymb*(sizeof(int)));
-      }
+  for (i = 0; i < n_decod; ++i)
+  {
+      str_smp[i] = malloc (sizeof(sampler_mem));
+      str_smp[i]->smplBuffer = calloc(2,smplPerSymb*(sizeof(int)));
+  }
 
   //CIC filter of demod
   mem_cic * str_cic[NUMBER_OF_DECODERS];
@@ -129,7 +128,7 @@ printf("debug: %d",smplPerSymb);
     
     //decodes signals from active channels
 
-//#pragma omp parallel for default (shared) private(decoder_index,i1,i2) num_threads(nthreads)
+#pragma omp parallel for default (shared) private(decoder_index) num_threads(2)
     for (decoder_index=0;decoder_index<NUMBER_OF_DECODERS;decoder_index++)
     {
       if(PTT_DP_LIST[decoder_index]->detect_state==FREQ_DECODING)
@@ -174,6 +173,7 @@ printf("debug: %d",smplPerSymb);
         }
       }
     }
+/*end of decode for loop*/
     
   }
   }

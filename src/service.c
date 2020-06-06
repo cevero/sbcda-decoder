@@ -4,14 +4,18 @@ void incAndOvFlow(int prevAcc,int inc,int nInc,int accWidth, int * accOut)
 	int acc = prevAcc;
 	int upLimit = pow(2,accWidth);
 	int iSmpl;
-
+//#pragma omp parallel for num_threads(4) default (none) shared(nInc,acc,accOut) private(inc,upLimit)  
 	for (iSmpl=0;iSmpl<nInc;iSmpl++){
+//#pragma omp critical
 	  acc = acc + inc;
 	  if (acc >= upLimit){
+//#pragma omp critical
 	    acc = acc-upLimit;
 	  }else if (acc < 0){
+//#pragma omp critical
 	    acc = acc+upLimit;
 	  }
+//#pragma omp critical
 	  accOut[iSmpl] = acc;
 	}
 }

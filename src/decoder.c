@@ -108,6 +108,7 @@ void decoder(int complex *inputSignal, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_
 	}
 
 	//decodes signals from active channels
+#pragma omp parallel for default (shared) private(iCh) num_threads(2)
   for (iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
     if(PTT_DP_LIST[iCh]->detect_state==FREQ_DECODING){
       pttA2Demod(inputSignal, InitFreq[iCh], vgaMant[iCh],          vgaExp[iCh], str_demod[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh]);

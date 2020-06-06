@@ -1,0 +1,1 @@
+gcc decoder.c demod/cicFilterCplxStep.c demod/pttA2Demod.c demod/sampler.c detect/detect_loop.c main.c service.c -lm -o main

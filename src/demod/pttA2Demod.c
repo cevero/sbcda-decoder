@@ -20,13 +20,16 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int
 	int lutAddr;
 	int complex deciSignal;
 
-	for(iSymb = 0; iSymb<nSymb;iSymb++){
+	for(iSymb = 0; iSymb<nSymb;iSymb++)
+    {
 		p->symbCount++;
 
 		/*
 		*	Partitioning of the input signal per symbol (160 samples/symbol)
 		*/
-		for(i0=0;i0<smplPerSymb;i0++){
+
+		for(i0=0;i0<smplPerSymb;i0++)
+        {
 			inputBlock[i0] = inputSignal[i0+smplPerSymb*iSymb];
 		}
 
@@ -38,7 +41,8 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int
 		incAndOvFlow(p->thetaNco, ncoFreq, smplPerSymb, freqW, ncoTheta);
 		p->thetaNco = ncoTheta[smplPerSymb-1];
 		
-		for(i0=0;i0<smplPerSymb;i0++){			
+		for(i0=0;i0<smplPerSymb;i0++)
+        {			
 			lutAddr = ncoTheta[i0] >> abs(thetaW-freqW);
 			ncoSignal[i0] = creal(ncoLut[lutAddr])-cimag(ncoLut[lutAddr])*I;
 		}		
@@ -47,9 +51,11 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int
 		*	Complex Multiplier
 		* floor(float)
 		*/		
-    int SMPperSymb = smplPerSymb;
-//#pragma omp parallel for num_threads(NUMTHREAD) default (none) shared(cplxMult,inputBlock,ncoSignal) private (SMPperSymb)
-		for (i0=0;i0<SMPperSymb;i0++){
+
+        int SMPperSymb = smplPerSymb;
+
+		for (i0=0;i0<SMPperSymb;i0++)
+        {
 			cplxMult[i0] = inputBlock[i0]*ncoSignal[i0];
 			cplxMult[i0] = ((float complex) cplxMult[i0])*pow(2,-(ncoAmpW-1));
 			cplxMult[i0] = floor(creal(cplxMult[i0]))+floor(cimag(cplxMult[i0]))*I;
@@ -63,10 +69,13 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int
 		/*
 		*	VGA input mfSignal output demodSignal
 		*/
-		for(i0=0;i0<smplPerSymb/deciRate;i0++){
+
+		for(i0=0;i0<smplPerSymb/deciRate;i0++)
+        {
 			vgaSignal[i0] = floor((creal(mfSignal[i0])*vgaMant)*pow(2,vgaExp-vgaMantW))+floor((cimag(mfSignal[i0])*vgaMant)*pow(2,vgaExp-vgaMantW))*I;
 			demodSignal[i0] = cimag(vgaSignal[i0]);
 		}
+
 		/*
 		*	Timer recovering SAMPLER
 		*/
@@ -75,19 +84,18 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int
 		p->symbOut[iSymb] = str_smp->symbOut;
 		p->symbLock[iSymb] = str_smp->symbLock;
 
-		/*
-		*	CIC2
-		*/
+		/*	CIC2 */
+
 		deciSignal = 0+0*I;
-		for (i0 = 0;i0<deciRateSmp;i0++){
+		for (i0 = 0;i0<deciRateSmp;i0++)
+        {
 			deciSignal = deciSignal+vgaSignal[i0];
 		}
 		int absDeciSignal = cabsf(deciSignal);
 		int angDeciSignal = atan2(cimag(deciSignal),creal(deciSignal))*pow(2,cordicW-1)/PI;
 		int theta = angDeciSignal*pow(2,(thetaW-cordicW));
-		/*
-		*	PLL Loop Filter
-		*/
+
+		/*	PLL Loop Filter*/
 
 		int piAdd = kpUInt*theta+(p->lfAcc>>(abs(kpExp-kiExp)));		
 		p->lfAcc +=kiUInt*theta;
