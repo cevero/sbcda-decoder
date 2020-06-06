@@ -128,11 +128,12 @@ printf("debug: %d",smplPerSymb);
     
     //decodes signals from active channels
 
-#pragma omp parallel for default (shared) private(decoder_index) num_threads(2)
+#pragma omp parallel for default (shared) private(decoder_index) num_threads(1)
     for (decoder_index=0;decoder_index<NUMBER_OF_DECODERS;decoder_index++)
     {
       if(PTT_DP_LIST[decoder_index]->detect_state==FREQ_DECODING)
       {
+#pragma omp critical
         pttA2Demod(inputSignal, InitFreq[decoder_index], vgaMant[decoder_index],vgaExp[decoder_index],
                 str_demod[decoder_index], str_cic[decoder_index], str_cicSmp[decoder_index], str_smp[decoder_index]);
 
