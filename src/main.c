@@ -6,9 +6,9 @@
 #define NUMBER_OF_SAMPLES 153600//140800
 
 int main(int argc, char * argv[]){
-  if(argc !=2)
+  if(argc !=3)
   {
-      printf("use ./main <nthreads>\n");
+      printf("use ./main <nthreads> <size_of_problem>\n");
       exit(0);
   }
   
@@ -17,6 +17,7 @@ int main(int argc, char * argv[]){
 
   int n0;
   int nthreads = atoi(argv[1]);
+  int size_entrace = atoi(argv[2]);
   printf("--------> Loading Input Signal <-------\n\n");
 
   FILE* inputFile = fopen("inputSignal12.txt","r");
@@ -97,9 +98,9 @@ printf("debug: %d",smplPerSymb);
     clearDecoder(PTT_DP_LIST[i],wpckg[i], str_cic[i], str_cicSmp[i], str_smp[i], str_demod[i]);
   }
   
-  #define NSIM (150)
+  #define NSIM (40)
   
-  for(int n0; n0<NSIM;n0++)
+  for(int n0=0; n0<size_entrace*NSIM;n0++)
   {
 
   for (i0=0;i0<NUMBER_OF_SAMPLES/WINDOW_LENGTH;i0++){
@@ -141,8 +142,8 @@ printf("debug: %d",smplPerSymb);
     startParallel = omp_get_wtime();
     //decodes signals from active channels
 
-#pragma omp parallel for default (shared) private(decoder_index) num_threads(nthreads)
 
+#pragma omp parallel for default (shared) private(decoder_index) num_threads(nthreads)
     for (decoder_index=0;decoder_index<NUMBER_OF_DECODERS;decoder_index++)
     {
       if(PTT_DP_LIST[decoder_index]->detect_state==FREQ_DECODING)
@@ -194,7 +195,7 @@ printf("debug: %d",smplPerSymb);
     sumParallelTime+=finishParallel-startParallel;
   }
   }
-
+// end of loop progress
     
   free(inputSignal);
   for(i=0;i<NUMBER_OF_DECODERS;i++){
@@ -215,8 +216,8 @@ printf("debug: %d",smplPerSymb);
 
   FILE *output_time;
   output_time = fopen("parallelTime.txt","a");
-  fprintf(output_time,"nthreads %d time = %f\n",nthreads,sumParallelTime);
-  printf("with %d threads time for parallel zone is = %f\n",nthreads,sumParallelTime);
+  fprintf(output_time,"nthreads %d time = %f size problem = %d\n",nthreads,sumParallelTime,size_entrace);
+  printf("with %d threads time for parallel zone is = %f size problem = %d\n",nthreads,sumParallelTime,size_entrace);
   printf("---------------> Check <-------------------\n\n");  
   return 0;
 }
