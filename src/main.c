@@ -4,9 +4,15 @@
 
 #define NUMBER_OF_SAMPLES 153600//140800
 
-int main(){
+int main(int argc, char * argv[]){
+  if(argc !=2)
+  {
+      printf("use ./main <nthreads>\n");
+      exit(0);
+  }
+
   int n0;
-  //int nthreads = 4;
+  int nthreads = atoi(argv[1]);
   printf("--------> Loading Input Signal <-------\n\n");
 
   FILE* inputFile = fopen("inputSignal12.txt","r");
@@ -128,7 +134,7 @@ printf("debug: %d",smplPerSymb);
     
     //decodes signals from active channels
 
-#pragma omp parallel for default (shared) private(decoder_index) num_threads(1)
+#pragma omp parallel for default (shared) private(decoder_index) num_threads(nthreads)
     for (decoder_index=0;decoder_index<NUMBER_OF_DECODERS;decoder_index++)
     {
       if(PTT_DP_LIST[decoder_index]->detect_state==FREQ_DECODING)
