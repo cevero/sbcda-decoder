@@ -2,3 +2,5 @@ build
 *.out
 *.o
 *.a
+out_main.txt
+out.txt

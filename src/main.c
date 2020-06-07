@@ -1,4 +1,5 @@
 #include "decoder.h"
+#include <stdlib.h>
 #include <omp.h>
 #include <malloc.h>
 
@@ -10,6 +11,9 @@ int main(int argc, char * argv[]){
       printf("use ./main <nthreads>\n");
       exit(0);
   }
+  
+  double startParallel,finishParallel, sumParallelTime = 0.0;
+
 
   int n0;
   int nthreads = atoi(argv[1]);
@@ -95,7 +99,9 @@ printf("debug: %d",smplPerSymb);
   
   #define NSIM (150)
   
-  for(int n0; n0<NSIM;n0++){
+  for(int n0; n0<NSIM;n0++)
+  {
+
   for (i0=0;i0<NUMBER_OF_SAMPLES/WINDOW_LENGTH;i0++){
     printf("***--------- Window processing ---------*** [%d]\n", i0);
     // Performs input partitioning on the windows of 1280 samples
@@ -132,9 +138,11 @@ printf("debug: %d",smplPerSymb);
       }
     }
     
+    startParallel = omp_get_wtime();
     //decodes signals from active channels
 
 #pragma omp parallel for default (shared) private(decoder_index) num_threads(nthreads)
+
     for (decoder_index=0;decoder_index<NUMBER_OF_DECODERS;decoder_index++)
     {
       if(PTT_DP_LIST[decoder_index]->detect_state==FREQ_DECODING)
@@ -182,8 +190,11 @@ printf("debug: %d",smplPerSymb);
     }
 /*end of decode for loop*/
     
+    finishParallel = omp_get_wtime();
+    sumParallelTime+=finishParallel-startParallel;
   }
   }
+
     
   free(inputSignal);
   for(i=0;i<NUMBER_OF_DECODERS;i++){
@@ -200,6 +211,12 @@ printf("debug: %d",smplPerSymb);
     free(str_demod[i]->symbOut);
     free(str_demod[i]);    
   }
+
+
+  FILE *output_time;
+  output_time = fopen("parallelTime.txt","a");
+  fprintf(output_time,"nthreads %d time = %f\n",nthreads,sumParallelTime);
+  printf("with %d threads time for parallel zone is = %f\n",nthreads,sumParallelTime);
   printf("---------------> Check <-------------------\n\n");  
   return 0;
 }
