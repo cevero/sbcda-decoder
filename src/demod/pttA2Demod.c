@@ -19,7 +19,7 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int
 	int complex vgaSignal[smplPerSymb/deciRate];
 	int lutAddr;
 	int complex deciSignal;
-
+#pragma omp critical
 	for(iSymb = 0; iSymb<nSymb;iSymb++)
     {
 		p->symbCount++;
@@ -27,7 +27,6 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int
 		/*
 		*	Partitioning of the input signal per symbol (160 samples/symbol)
 		*/
-
 		for(i0=0;i0<smplPerSymb;i0++)
         {
 			inputBlock[i0] = inputSignal[i0+smplPerSymb*iSymb];
@@ -40,7 +39,6 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int
 		
 		incAndOvFlow(p->thetaNco, ncoFreq, smplPerSymb, freqW, ncoTheta);
 		p->thetaNco = ncoTheta[smplPerSymb-1];
-		
 		for(i0=0;i0<smplPerSymb;i0++)
         {			
 			lutAddr = ncoTheta[i0] >> abs(thetaW-freqW);
@@ -53,7 +51,6 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int
 		*/		
 
         int SMPperSymb = smplPerSymb;
-
 		for (i0=0;i0<SMPperSymb;i0++)
         {
 			cplxMult[i0] = inputBlock[i0]*ncoSignal[i0];
@@ -97,9 +94,11 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int
 
 		/*	PLL Loop Filter*/
 
-		int piAdd = kpUInt*theta+(p->lfAcc>>(abs(kpExp-kiExp)));		
+		int piAdd;
+        piAdd = kpUInt*theta+(p->lfAcc>>(abs(kpExp-kiExp)));		
 		p->lfAcc +=kiUInt*theta;
-		int lpf = piAdd>>(abs(freqW-thetaW-kpExp));
+		int lpf; 
+		lpf = piAdd>>(abs(freqW-thetaW-kpExp));
 		p->ncoDFreq = lpf;
 	}
 }

@@ -148,9 +148,11 @@ printf("debug: %d",smplPerSymb);
     {
       if(PTT_DP_LIST[decoder_index]->detect_state==FREQ_DECODING)
       {
-#pragma omp critical
-        pttA2Demod(inputSignal, InitFreq[decoder_index], vgaMant[decoder_index],vgaExp[decoder_index],
-                str_demod[decoder_index], str_cic[decoder_index], str_cicSmp[decoder_index], str_smp[decoder_index]);
+//#pragma omp critical
+        pttA2Demod(inputSignal, InitFreq[decoder_index], 
+                vgaMant[decoder_index], vgaExp[decoder_index],
+                str_demod[decoder_index], str_cic[decoder_index],
+                str_cicSmp[decoder_index], str_smp[decoder_index]);
 
         for(i1 = 0;i1<nSymb;i1++)
         {

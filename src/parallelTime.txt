@@ -28,3 +28,14 @@ nthreads 16 time = 100.853534 size problem = 16
 nthreads 2 time = 17.244965 size problem = 2
 nthreads 4 time = 65.683845 size problem = 4
 nthreads 8 time = 84.453758 size problem = 8
+nthreads 2 time = 7.019994 size problem = 1
+nthreads 2 time = 7.107708 size problem = 1
+nthreads 2 time = 6.563274 size problem = 1
+nthreads 2 time = 13.296638 size problem = 2
+nthreads 2 time = 17.051862 size problem = 2
+nthreads 8 time = 33.013210 size problem = 4
+nthreads 8 time = 35.964330 size problem = 4
+nthreads 2 time = 15.004748 size problem = 2
+nthreads 2 time = 16.000147 size problem = 2
+nthreads 2 time = 15.270891 size problem = 2
+nthreads 8 time = 40.551490 size problem = 4
