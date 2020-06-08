@@ -19,14 +19,17 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int
 	int complex vgaSignal[smplPerSymb/deciRate];
 	int lutAddr;
 	int complex deciSignal;
-#pragma omp critical
+
 	for(iSymb = 0; iSymb<nSymb;iSymb++)
     {
+#pragma omp atomic
 		p->symbCount++;
 
 		/*
 		*	Partitioning of the input signal per symbol (160 samples/symbol)
 		*/
+#pragma omp critical
+        {
 		for(i0=0;i0<smplPerSymb;i0++)
         {
 			inputBlock[i0] = inputSignal[i0+smplPerSymb*iSymb];
@@ -57,7 +60,7 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int
 			cplxMult[i0] = ((float complex) cplxMult[i0])*pow(2,-(ncoAmpW-1));
 			cplxMult[i0] = floor(creal(cplxMult[i0]))+floor(cimag(cplxMult[i0]))*I;
 		}
-
+        }//critend
 		/*
 		*	Matched filter and decimation
 		*/
@@ -66,13 +69,14 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int
 		/*
 		*	VGA input mfSignal output demodSignal
 		*/
-
+        
 		for(i0=0;i0<smplPerSymb/deciRate;i0++)
         {
 			vgaSignal[i0] = floor((creal(mfSignal[i0])*vgaMant)*pow(2,vgaExp-vgaMantW))+floor((cimag(mfSignal[i0])*vgaMant)*pow(2,vgaExp-vgaMantW))*I;
 			demodSignal[i0] = cimag(vgaSignal[i0]);
 		}
 
+       // }
 		/*
 		*	Timer recovering SAMPLER
 		*/

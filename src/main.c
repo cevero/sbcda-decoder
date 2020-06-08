@@ -107,13 +107,11 @@ printf("debug: %d",smplPerSymb);
   for (i0=0;i0<NUMBER_OF_SAMPLES/WINDOW_LENGTH;i0++){
     printf("***--------- Window processing ---------*** [%d]\n", i0);
     // Performs input partitioning on the windows of 1280 samples
-     
     for (n = 0; n < WINDOW_LENGTH; n++) {
       inputSignal[n] = inputRe[WINDOW_LENGTH*i0+n]+inputIm[WINDOW_LENGTH*i0+n]*I;
     }
 
     UpdateTimeout(PTT_DP_LIST,wpckg);
-
     tmp0 =  detectLoop(inputSignal, PTT_DP_LIST);
     
     //DEBUG Purpose
@@ -134,6 +132,7 @@ printf("debug: %d",smplPerSymb);
         vgaExp[decoder_index] = -1*(vga&0x3F);
         vgaMant[decoder_index] = (vga>>6)&0xFF;
         InitFreq[decoder_index] = PTT_DP_LIST[decoder_index]->freq_idx<<9;
+
         printf("[%d]: mant %d exp %d\n",decoder_index, vgaMant[decoder_index],vgaExp[decoder_index]);
         PTT_DP_LIST[decoder_index]->detect_state=FREQ_DECODING;
         wpckg[decoder_index]->status=PTT_FRAME_SYNCH;
