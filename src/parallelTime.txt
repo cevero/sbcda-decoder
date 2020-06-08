@@ -1,0 +1,30 @@
+Version 1 of parallel
+
+nthreads 1 time = 3.622877 size problem = 1
+nthreads 1 time = 7.433845 size problem = 2
+nthreads 1 time = 15.475967 size problem = 4
+nthreads 1 time = 30.597705 size problem = 8
+nthreads 1 time = 59.762607 size problem = 16
+nthreads 2 time = 4.308833 size problem = 1
+nthreads 2 time = 8.272661 size problem = 2
+nthreads 2 time = 15.772279 size problem = 4
+nthreads 2 time = 30.987184 size problem = 8
+nthreads 2 time = 66.350654 size problem = 16
+nthreads 4 time = 12.082412 size problem = 1
+nthreads 4 time = 24.212054 size problem = 2
+nthreads 4 time = 48.821217 size problem = 4
+nthreads 4 time = 87.836799 size problem = 8
+nthreads 4 time = 174.909110 size problem = 16
+nthreads 8 time = 6.273432 size problem = 1
+nthreads 8 time = 12.190432 size problem = 2
+nthreads 8 time = 24.381107 size problem = 4
+nthreads 8 time = 49.329269 size problem = 8
+nthreads 8 time = 89.620023 size problem = 16
+nthreads 16 time = 6.534877 size problem = 1
+nthreads 16 time = 12.541842 size problem = 2
+nthreads 16 time = 25.336101 size problem = 4
+nthreads 16 time = 50.741295 size problem = 8
+nthreads 16 time = 100.853534 size problem = 16
+nthreads 2 time = 17.244965 size problem = 2
+nthreads 4 time = 65.683845 size problem = 4
+nthreads 8 time = 84.453758 size problem = 8

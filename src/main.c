@@ -100,6 +100,7 @@ printf("debug: %d",smplPerSymb);
   
   #define NSIM (40)
   
+    startParallel = omp_get_wtime();
   for(int n0=0; n0<size_entrace*NSIM;n0++)
   {
 
@@ -139,7 +140,6 @@ printf("debug: %d",smplPerSymb);
       }
     }
     
-    startParallel = omp_get_wtime();
     //decodes signals from active channels
 
 
@@ -191,12 +191,12 @@ printf("debug: %d",smplPerSymb);
     }
 /*end of decode for loop*/
     
-    finishParallel = omp_get_wtime();
-    sumParallelTime+=finishParallel-startParallel;
   }
   }
 // end of loop progress
     
+    finishParallel = omp_get_wtime();
+    sumParallelTime+=finishParallel-startParallel;
   free(inputSignal);
   for(i=0;i<NUMBER_OF_DECODERS;i++){
     free(PTT_DP_LIST[i]);
