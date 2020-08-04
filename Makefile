@@ -1,25 +1,6 @@
-CC := gcc
-SRCDIR := src
-BUILDDIR := build
-TARGET := inputSignalAndufft
- 
-SRCEXT := c
-SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
-OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-CFLAGS :=-Wall -g -fopenmp
-LIB :=lib/ufft/fft-dit.c lib/ufft/ift-dit.c -lm -fopenmp#-pthread
-INC :=-Ilib/ufft
+PULP_APP = sbcda_decoder
+PULP_APP_FC_SRCS = src/main.c src/decoder.c src/detect_loop.c src/service.c src/demod/cicFilterCplxStep.c src/demod/pptA2Demod.c src/demod/sampler.c
+PULP_APP_HOST_SRCS = src/main.c src/decoder.c src/detect_loop.c src/service.c src/demod/cicFilterCplxStep.c src/demod/pptA2Demod.c src/demod/sampler.c
+PULP_CFLAGS = -O2 -g -I$(GAP_SDK_HOME)/rtos/pulp/pulp-os/kernel/gap/
 
-$(BUILDDIR)/$(TARGET): $(OBJECTS)
-	@echo " Linking..."
-	@echo " $(CC) $^ -o $@ $(LIB)"; $(CC) $^ -o $@ $(LIB)
-
-$(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
-	@mkdir -p $(BUILDDIR)
-	@echo " $(CC) $(CFLAGS) $(INC) -c -o $@ $<"; $(CC) $(CFLAGS) $(INC) -c -o $@ $<
-
-clean:
-	@echo " Cleaning..."; 
-	@echo " $(RM) -r $(BUILDDIR)"; $(RM) -r $(BUILDDIR)
-
-.PHONY: clean
+include $(GAP_SDK_HOME)/tools/rules/pulp_rules.mk

@@ -3,9 +3,8 @@
 #include <math.h>
 #include <stdio.h>
 #include <complex.h>
-#include "fft.h"
 #include "detect_loop.h"
-#include "../service.h"
+#include "service.h"
 
 int prevIdx[] = {[0 ... DFT_LENGTH-1]=0};
 //FreqsRecord_Typedef PTT_DP_LIST[NUMBER_OF_DECODERS];
@@ -93,7 +92,8 @@ unsigned int detectLoop(int complex *inputSignal, FreqsRecord_Typedef * PTT_DP_L
   int mask[] = {[0 ... DFT_LENGTH-1] = DEFAULT_AMP_THRESHOLD};
   float complex fftSignal[] = {[0 ... DFT_LENGTH-1] = 0+0*I};
   
-  unsigned int nPass=0, assigned_decoder = 0;
+  unsigned int nPass=0;
+  int assigned_decoder = 0;
     /*save the window of signal in freq*/
     PassSet_Typedef passSet;
 

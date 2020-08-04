@@ -80,7 +80,7 @@ int main(){
   
   #define NSIM (150)
   
-  for(int n0; n0<NSIM;n0++){
+  for(int n0=0; n0<NSIM;n0++){
   for (i0=0;i0<NUMBER_OF_SAMPLES/WINDOW_LENGTH;i0++){
     printf("***--------- Window processing ---------*** [%d]\n", i0);
     // Performs input partitioning on the windows of 1280 samples

@@ -1,4 +1,5 @@
 #include "service.h"
+
 void incAndOvFlow(int prevAcc,int inc,int nInc,int accWidth, int * accOut)
 {
 	int acc = prevAcc;

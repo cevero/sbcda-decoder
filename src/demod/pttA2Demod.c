@@ -1,9 +1,5 @@
 #include "pttA2Demod.h"
 #include "ncoLut.h"
-#include <omp.h>
-
-
-#define NUMTHREAD 2
 
 void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp, demod_mem * p, mem_cic * str, mem_cic * str1, sampler_mem * str_smp)
 {
@@ -47,7 +43,6 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp
 		* floor(float)
 		*/		
 
-#pragma omp parallel for num_threads(NUMTHREAD) shared(cplxMult)
 		for (i0=0;i0<smplPerSymb;i0++){
 			cplxMult[i0] = inputBlock[i0]*ncoSignal[i0];
 			cplxMult[i0] = ((float complex) cplxMult[i0])*pow(2,-(ncoAmpW-1));

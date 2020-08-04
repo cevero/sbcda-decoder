@@ -7,7 +7,7 @@
 //#include "ift.h"
 #include "demod/pttA2Demod.h"
 #include "service.h"
-#include "detect/detect_loop.h"
+#include "detect_loop.h"
 
 void clearDecoder(FreqsRecord_Typedef * PTT_DP_LIST,PTTPackage_Typedef * wpckg, mem_cic * str_cic, mem_cic * str_cicSmp, sampler_mem * str_smp, demod_mem * str_demod);
 
