@@ -1,10 +1,12 @@
+#include "Gap8.h"
+ 
 #include "rt/rt_api.h"
 #include "decoder.h"
 #include "inputSignalMin.h"
 #define NUMBER_OF_SAMPLES 47360 
 int main()
 {
-		rt_freq_set(RT_FREQ_DOMAIN_FC,200000000);
+  rt_freq_set(RT_FREQ_DOMAIN_FC,200000000);
   int n0;
   printf("--------> Loading Input Signal %d <-------\n\n",rt_freq_get(RT_FREQ_DOMAIN_FC));
  //int complex input [1280*36];
@@ -68,6 +70,7 @@ int main()
   int * InitFreq = rt_alloc(RT_ALLOC_FC_RET_DATA,NUMBER_OF_DECODERS*sizeof(int));
   int debug = 0;
   int detect_time=0, demod_time=0, decod_time=0, total_time=0,aux_time, decod_per_channel=0;
+  FFT_Arg_T C1;
 
   for(iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
     printf("Clearing decoder %d\n",iCh);
