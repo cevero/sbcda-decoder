@@ -8,10 +8,12 @@ void cicFilterCplxStep(float complex *inputSignal, mem_cic * str, float complex 
   // str: a structure with cicFitler state
   // outputSignal: a complex signal with k samples
 
-  uint16_t iSmplOut = 0;
-  uint16_t deciCount = 0;
-  int previousAccRe[delay], previousAccIm[delay], accRe, accIm, acc, iSmpl,diffRe,diffIm, i; 
-  uint8_t accDlyIdx;
+  int iSmplOut = 0;
+  int deciCount = 0;
+  int * previousAccRe = rt_alloc(RT_ALLOC_FC_RET_DATA,delay*sizeof(int));
+  int * previousAccIm = rt_alloc(RT_ALLOC_FC_RET_DATA,delay*sizeof(int));
+  int accDlyIdx, accRe, accIm, acc, iSmpl,diffRe,diffIm, i; 
+;
 
 	
   // read state load data in previous step
@@ -81,4 +83,6 @@ void cicFilterCplxStep(float complex *inputSignal, mem_cic * str, float complex 
     str->previousAccIm[i] = previousAccIm[i];
   }
   str->accDlyIdx = accDlyIdx;
+  rt_free(RT_ALLOC_FC_RET_DATA,previousAccRe,delay*sizeof(int));
+  rt_free(RT_ALLOC_FC_RET_DATA,previousAccIm,delay*sizeof(int));
 }

@@ -1,19 +1,23 @@
 #include "pttA2Demod.h"
 #include "ncoLut.h"
+#include "stdlib.h"
 
 void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp, demod_mem * p, mem_cic * str, mem_cic * str1, sampler_mem * str_smp)
 {
 	int iSymb, i0;
 	
-	int complex inputBlock[smplPerSymb];
-	int complex ncoSignal[smplPerSymb];
-	float complex cplxMult[smplPerSymb];
-	float complex mfSignal[] = {[0 ... smplPerSymb/deciRate-1] = 0+0*I};
-	int ncoFreq, demodSignal[smplPerSymb/deciRate];	
-	int ncoTheta[smplPerSymb];
-	int complex vgaSignal[smplPerSymb/deciRate];
+	int complex * inputBlock = rt_alloc(RT_ALLOC_FC_RET_DATA,smplPerSymb*sizeof(int complex));
+	int complex * ncoSignal = rt_alloc(RT_ALLOC_FC_RET_DATA,smplPerSymb*sizeof(int complex));
+	float complex * cplxMult = rt_alloc(RT_ALLOC_FC_RET_DATA,smplPerSymb*sizeof(float complex));
+	float complex * mfSignal = rt_alloc(RT_ALLOC_FC_RET_DATA,(smplPerSymb/deciRate)*sizeof(float complex));
+	int ncoFreq; 
+	int * demodSignal = rt_alloc(RT_ALLOC_FC_RET_DATA,(smplPerSymb/deciRate)*sizeof(int));
+	int * ncoTheta = rt_alloc(RT_ALLOC_FC_RET_DATA,smplPerSymb*sizeof(int));
+	int complex * vgaSignal = rt_alloc(RT_ALLOC_FC_RET_DATA,(smplPerSymb/deciRate)*sizeof(int complex));
+
 	int lutAddr;
 	int complex deciSignal;
+	int absDeciSignal, angDeciSignal, theta, piAdd,lpf;
 
 	for(iSymb = 0; iSymb<nSymb;iSymb++){
 		p->symbCount++;
@@ -76,16 +80,29 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp
 		for (i0 = 0;i0<deciRateSmp;i0++){
 			deciSignal = deciSignal+vgaSignal[i0];
 		}
-		int absDeciSignal = cabsf(deciSignal);
-		int angDeciSignal = atan2(cimag(deciSignal),creal(deciSignal))*pow(2,cordicW-1)/PI;
-		int theta = angDeciSignal*pow(2,(thetaW-cordicW));
+		absDeciSignal = cabsf(deciSignal);
+		angDeciSignal = atan2(cimag(deciSignal),creal(deciSignal))*pow(2,cordicW-1)/PI;
+		theta = angDeciSignal*pow(2,(thetaW-cordicW));
 		/*
 		*	PLL Loop Filter
 		*/
 
-		int piAdd = kpUInt*theta+(p->lfAcc>>(abs(kpExp-kiExp)));		
+		piAdd = kpUInt*theta+(p->lfAcc>>(abs(kpExp-kiExp)));		
 		p->lfAcc +=kiUInt*theta;
-		int lpf = piAdd>>(abs(freqW-thetaW-kpExp));
+		lpf = piAdd>>(abs(freqW-thetaW-kpExp));
 		p->ncoDFreq = lpf;
 	}
+rt_free(RT_ALLOC_FC_RET_DATA,inputBlock,smplPerSymb*(sizeof(int complex)));
+rt_free(RT_ALLOC_FC_RET_DATA,ncoSignal,smplPerSymb*(sizeof(int complex)));
+rt_free(RT_ALLOC_FC_RET_DATA,vgaSignal,(smplPerSymb/deciRate)*sizeof(int complex));
+rt_free(RT_ALLOC_FC_RET_DATA,cplxMult,smplPerSymb*(sizeof(float complex)));   
+rt_free(RT_ALLOC_FC_RET_DATA,mfSignal,(smplPerSymb/deciRate)*(sizeof(float complex)));
+rt_free(RT_ALLOC_FC_RET_DATA,demodSignal,(smplPerSymb/deciRate)*sizeof(int));
+rt_free(RT_ALLOC_FC_RET_DATA,ncoTheta,(smplPerSymb)*sizeof(int));
 }
+
+
+
+
+
+

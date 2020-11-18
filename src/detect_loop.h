@@ -29,8 +29,8 @@ typedef struct {
 *	DDS_PassSet_Typedef assists in this processing
 */
 typedef struct {
-	unsigned int Idx[DFT_LENGTH];
-	unsigned int Amp[DFT_LENGTH];
+	unsigned int Idx[32];
+	unsigned int Amp[32];
 } PassSet_Typedef;
 
 typedef enum {
@@ -41,6 +41,6 @@ typedef enum {
 
 void calc_mask(int * mask,FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS]);
 
-unsigned int detectLoop(int complex *inputSignal, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS]);
+unsigned int detectLoop(int complex *inputSignal, int * prevIdx, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS]);
 
 #endif

@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stddef.h>
 #include <math.h>
+#include "rt/rt_api.h"
 #include <complex.h>
 
 typedef enum{
@@ -26,17 +27,17 @@ int carrierAbs; /* Carrier Amplitude at ADC interface output */
 int msgByteLength; /**< Message Length parameter */
 int userMsg[35];
 //***************************************************************
-//   THIS FILEDS ARE FOR INTERNAL CONTROL ONLY,									*
-//   THEY ARE NOT SENT TO ON-BOARD COMPUTER AS PART							*
-//   OF THE PACKAGE																							*
-//
-int synch_patternA;//																						*
-int synch_patternB;//																						*
-int status; //< Current decoding state of the PTT Package 			*
-int symb_array[8];//																						*
-int total_symbol_cnt;//																					*
-int bit_cnt; //< Number of bits of the PTT message 							*
-int symb_cnt;//																									*
+//   THIS FILEDS ARE FOR INTERNAL CONTROL ONLY,			*
+//   THEY ARE NOT SENT TO ON-BOARD COMPUTER AS PART		*
+//   OF THE PACKAGE						*
+//   								*
+int synch_patternA;//						*
+int synch_patternB;//						*
+int status; //< Current decoding state of the PTT Package 	*
+int symb_array[8];//						*
+int total_symbol_cnt;//						*
+int bit_cnt; //< Number of bits of the PTT message 		*
+int symb_cnt;//							*
 //***************************************************************
 
 } PTTPackage_Typedef;
@@ -52,5 +53,10 @@ void readData(PTTPackage_Typedef * wpckg, int pttd_symbol);
 int VgaGain (int tmp_amp);
 
 int fft(float complex *tmp, float complex *v, int n);
+//int fft(int complex *v, int n);
+//int _fft(int complex * buf, int complex *out, int n, int step);
 
+void fft_it(float complex * a, int N);
+void fft_step(float complex * a,int N);
+void bitInvert(float complex * a,int N);
 #endif

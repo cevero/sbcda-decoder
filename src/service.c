@@ -77,7 +77,7 @@ unsigned int calcMessageLength(unsigned int msgByteLength)
 		return 280 /*4+28+248 bits*/;
 		break;
 	default:
-		return 280 /*4+28+248 bits*/;
+		return 56 /*4+28+248 bits*/;
 		break;
 	}
 }
@@ -112,6 +112,7 @@ void frameSynch(PTTPackage_Typedef * wpckg, int pttd_symbol)
 					== (SYNCH_PATTERN & SYNCH_MIN_MASK)
 					|| (wpckg->synch_patternB & SYNCH_MIN_MASK)
 							== (SYNCH_PATTERN & SYNCH_MIN_MASK)) { // match!!!
+		//		printf("SYNC OK!!!!\n\n");
 				wpckg->status = PTT_DATA;
 				wpckg->symb_cnt = 0;
 			}
@@ -198,7 +199,7 @@ int VgaGain (int tmp_amp)
 */
 /* Factored discrete Fourier transform, or FFT, and its inverse iFFT */
 #ifndef PI
-# define PI	3.14159265358979323846264338327950288
+#define PI	3.14159265358979323846264338327950288
 #endif
 
 /*
@@ -214,26 +215,83 @@ int VgaGain (int tmp_amp)
    [8]   Let v[m] = ve[m] + w*vo[m]
    [9]   Let v[m+N/2] = ve[m] - w*vo[m]
  */
+
+
+
 int fft(float complex *tmp, float complex *v, int n)
 {
-	if(n>1) {			/* otherwise, do nothing and return */
-    int k,m;   
-		float complex z, w, *vo, *ve;
+	if(n>1) {	// otherwise, do nothing and return 
+	int k,m;   
+	float complex z, w;
+        float complex * vo;
+        float complex * ve;
 
-    ve = tmp; vo = tmp+n/2;				
-    for(k=0; k<n/2; k++) {
-      ve[k] = v[2*k];
-      vo[k] = v[2*k+1];
-    }
-    fft(v, ve, n/2);/* FFT on even-indexed elements of v[]*/
-    fft(v, vo, n/2);/* FFT on odd-indexed elements of v[] */
-    for(m=0; m<n/2; m++) {
-      w = cos(2*PI*m/(double)n)-(sin(2*PI*m/(double)n)*I);   
-      z = w*vo[m];      
-      v[m] = ve[m] + z;      
-      v[m+n/2] = ve[m]-z;  
-    }
-  }
+	ve = tmp; vo = tmp+n/2;				
+	for(k=0; k<n/2; k++) {
+		ve[k] = v[2*k];
+		vo[k] = v[2*k+1];
+	}
+	fft(v, ve, n/2);// FFT on even-indexed elements of v[]
+	fft(v, vo, n/2);// FFT on odd-indexed elements of v[] 
+	for(m=0; m<n/2; m++) {
+		w = cos(2*PI*m/(double)n)-(sin(2*PI*m/(double)n)*I);   
+		z = w*vo[m];      
+		v[m] = ve[m] + z;      
+		v[m+n/2] = ve[m]-z;  
 	
+	
+	}
+	}
+
   return 0;
+}
+
+void bitInvert(float complex * a, int N)
+{
+	int i,j,k,mv,rev;
+	float complex aux;
+	for(i=1; i<N;i++){
+		k=i;
+		mv = N/2;
+		rev = 0;
+		while(k>0){
+			if((k%2)>0)
+				rev=rev+mv;
+			k = k/2;
+			mv=mv/2;
+		}
+		{
+		if(i<rev){
+			aux=a[rev];
+			a[rev]=a[i];
+			a[i]=aux;
+		}
+		}
+	}
+
+}
+void fft_step(float complex * a,int N)
+{
+	int i,k,m;
+	float complex w,v,h;
+	k=1;
+	while(k<=N/2){
+		m=0;
+		while(m<=(N-2*k)){
+			for(i=m;i<m+k;i++){
+				w=cos(PI*(double)(i-m)/(double)(k))-(sin(PI*(double)(i-m)/(double)(k))*I);
+				h=w*a[i+k];
+				v=a[i];
+				a[i]=h+a[i];
+				a[i+k]=v-h;
+			}
+			m=m+2*k;
+		}
+		k=k*2;
+	}
+}
+void fft_it(float complex * a, int N)
+{
+	bitInvert(a,N);
+	fft_step(a,N);
 }

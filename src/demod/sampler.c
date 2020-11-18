@@ -7,11 +7,12 @@ int complex lutHalfCycle[] = {127+0*I,117+49*I,90+90*I,49+117*I,
 								
 void sampler(int *demodSignal, sampler_mem * str_smp, mem_cic * str)
 {
-	int symbOut;
+	int symbOut,idx;
 	int i,i0,absMovAvg,offset,delayPlusOffset, integerDly, fractDly, delayDiff, delayUnWrap,x;
 	float delay, delayFlt,angMovAvg;
 	float complex freqShftSignal[] = {[0 ... nSymb-1] = 0}, movingAvg, cicSignal;
 	float complex sqrdSignal[] = {[0 ... nSymb-1] = 0};
+	float accSymb;
   //apply frequency shift
 	
 	for(i = 0; i<nSymb; i++){		
@@ -68,9 +69,9 @@ void sampler(int *demodSignal, sampler_mem * str_smp, mem_cic * str)
 	delayPlusOffset = delayUnWrap+offset;
   integerDly = floor(delayPlusOffset/tSmpl);
 	fractDly = delayPlusOffset-(integerDly*tSmpl);
-	int idx;
+	
 	idx = integerDly;
-  float accSymb = floor((str_smp->smplBuffer[idx+1]-str_smp->smplBuffer[idx])*fractDly/tSmpl);
+	accSymb = floor((str_smp->smplBuffer[idx+1]-str_smp->smplBuffer[idx])*fractDly/tSmpl);
   
  	str_smp->symbOut = str_smp->smplBuffer[idx]+accSymb;
  }

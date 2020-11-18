@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <complex.h>
-//#include "detect/fft.h"
-//#include "ift.h"
 #include "demod/pttA2Demod.h"
 #include "service.h"
 #include "detect_loop.h"
