@@ -25,7 +25,7 @@ extern "C" {
 */
 
 #if 1
-#define KISS_FFT_MALLOC(nbytes) rt_alloc(RT_ALLOC_FC_DATA, nbytes)
+#define KISS_FFT_MALLOC(nbytes) rt_alloc(RT_ALLOC_FC_RET_DATA, nbytes)
 #define KISS_FFT_FREE 
 #else
 #ifdef USE_SIMD
@@ -38,7 +38,7 @@ extern "C" {
 #define KISS_FFT_FREE free
 #endif	
 #endif
-
+#define FIXED_POINT  32
 #ifdef FIXED_POINT
 #include <sys/types.h>	
 # if (FIXED_POINT == 32)

@@ -1,6 +1,6 @@
-#include "Gap8.h"
- 
+#include "Gap8.h" 
 #include "rt/rt_api.h"
+#include "../lib/kiss_fft.h"
 #include "decoder.h"
 #include "inputSignalMin.h"
 #define NUMBER_OF_SAMPLES 47360 
@@ -14,7 +14,7 @@ int main()
    
   //sampler memory
   int i;
- 
+/* 
   sampler_mem * str_smp[NUMBER_OF_DECODERS];
   for (i = 0; i < NUMBER_OF_DECODERS; ++i){
     str_smp[i] = rt_alloc(RT_ALLOC_FC_RET_DATA,sizeof(sampler_mem));
@@ -44,19 +44,20 @@ int main()
     str_demod[i]->symbLock = rt_alloc(RT_ALLOC_FC_RET_DATA,nSymb*sizeof(int));
     str_demod[i]->symbOut = rt_alloc(RT_ALLOC_FC_RET_DATA,nSymb*sizeof(int));
   }
-
+*/
   // struct stores the interface (detect to demod) parameters
   FreqsRecord_Typedef *PTT_DP_LIST[NUMBER_OF_DECODERS];
   for(i=0;i<NUMBER_OF_DECODERS;i++){
     PTT_DP_LIST[i] = rt_alloc(RT_ALLOC_FC_RET_DATA,sizeof(FreqsRecord_Typedef));
   }
   
+/*
   // This struct is used to control the FSM and show bit results
   PTTPackage_Typedef * wpckg[NUMBER_OF_DECODERS];
   for(i=0;i<NUMBER_OF_DECODERS;i++){
     wpckg[i] = rt_alloc(RT_ALLOC_FC_RET_DATA,sizeof(PTTPackage_Typedef));//WITHOU FREE******
   }
-
+*/
   int * prevIdx = rt_alloc(RT_ALLOC_FC_RET_DATA,DFT_LENGTH*sizeof(int));
   for(i=0;i<DFT_LENGTH;i++){
 	  prevIdx[i]=0;
@@ -70,13 +71,15 @@ int main()
   int * InitFreq = rt_alloc(RT_ALLOC_FC_RET_DATA,NUMBER_OF_DECODERS*sizeof(int));
   int debug = 0;
   int detect_time=0, demod_time=0, decod_time=0, total_time=0,aux_time, decod_per_channel=0;
-  FFT_Arg_T C1;
+//  FFT_Arg_T C1;
+/*
+
 
   for(iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
     printf("Clearing decoder %d\n",iCh);
     clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh], str_demod[iCh]);
   }
-
+*/
   #define NSIM (1)
   
   for(n0=0; n0<NSIM;n0++){
@@ -99,7 +102,7 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
 
 //    printf("Updating Timeout !\n");
 
-    UpdateTimeout(PTT_DP_LIST,wpckg);
+  //  UpdateTimeout(PTT_DP_LIST,wpckg);
   
    detect_time = rt_time_get_us();
   // printf("Starting detection loop ! %d ms\n", detect_time/1000);
@@ -126,7 +129,7 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
         InitFreq[iCh] = PTT_DP_LIST[iCh]->freq_idx<<9;
 //        printf("[%d]: mant %d exp %d\n",iCh, vgaMant[iCh],vgaExp[iCh]);
         PTT_DP_LIST[iCh]->detect_state=FREQ_DECODING;
-        wpckg[iCh]->status=PTT_FRAME_SYNCH;
+   //     wpckg[iCh]->status=PTT_FRAME_SYNCH;
       }
     
     }
@@ -154,8 +157,8 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
         printf("[%d]: mant %d exp %d\n",0, vgaMant[1],vgaExp[1]);
         wpckg[1]->status=PTT_FRAME_SYNCH;
     }
-   
-*/
+*/   
+/*
     //decodes signals from active channels
     for (iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
       if(PTT_DP_LIST[iCh]->detect_state==FREQ_DECODING){
@@ -199,7 +202,7 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
    
 
     }
-    
+    */
   }
 total_time = rt_time_get_us()-aux_time;
 printf("total time %d\n",total_time/1000);
@@ -213,17 +216,17 @@ printf("total time %d\n",total_time/1000);
   
   for(i=0;i<NUMBER_OF_DECODERS;i++){
     rt_free(RT_ALLOC_FC_RET_DATA,PTT_DP_LIST[i],sizeof(FreqsRecord_Typedef));
-    rt_free(RT_ALLOC_FC_RET_DATA,str_smp[i]->smplBuffer,2*smplPerSymb*(sizeof(int)));   
-    rt_free(RT_ALLOC_FC_RET_DATA,str_smp[i],sizeof(sampler_mem));       
-    rt_free(RT_ALLOC_FC_RET_DATA,str_cicSmp[i]->previousAccRe,delaySmp*sizeof(int));
-    rt_free(RT_ALLOC_FC_RET_DATA,str_cicSmp[i]->previousAccIm,delaySmp*sizeof(int));
-    rt_free(RT_ALLOC_FC_RET_DATA,str_cicSmp[i],sizeof(mem_cic));
-    rt_free(RT_ALLOC_FC_RET_DATA,str_cic[i]->previousAccRe,delayIdx*sizeof(int));
-    rt_free(RT_ALLOC_FC_RET_DATA,str_cic[i]->previousAccIm,delayIdx*sizeof(int));
-    rt_free(RT_ALLOC_FC_RET_DATA,str_cic[i],sizeof(mem_cic));        
-    rt_free(RT_ALLOC_FC_RET_DATA,str_demod[i]->symbLock,nSymb*sizeof(int));
-    rt_free(RT_ALLOC_FC_RET_DATA,str_demod[i]->symbOut,nSymb*sizeof(int));
-    rt_free(RT_ALLOC_FC_RET_DATA,str_demod[i],sizeof(demod_mem));    
+//    rt_free(RT_ALLOC_FC_RET_DATA,str_smp[i]->smplBuffer,2*smplPerSymb*(sizeof(int)));   
+ //   rt_free(RT_ALLOC_FC_RET_DATA,str_smp[i],sizeof(sampler_mem));       
+ //   rt_free(RT_ALLOC_FC_RET_DATA,str_cicSmp[i]->previousAccRe,delaySmp*sizeof(int));
+//    rt_free(RT_ALLOC_FC_RET_DATA,str_cicSmp[i]->previousAccIm,delaySmp*sizeof(int));
+ //   rt_free(RT_ALLOC_FC_RET_DATA,str_cicSmp[i],sizeof(mem_cic));
+ //   rt_free(RT_ALLOC_FC_RET_DATA,str_cic[i]->previousAccRe,delayIdx*sizeof(int));
+ //   rt_free(RT_ALLOC_FC_RET_DATA,str_cic[i]->previousAccIm,delayIdx*sizeof(int));
+ //   rt_free(RT_ALLOC_FC_RET_DATA,str_cic[i],sizeof(mem_cic));        
+ //   rt_free(RT_ALLOC_FC_RET_DATA,str_demod[i]->symbLock,nSymb*sizeof(int));
+ //   rt_free(RT_ALLOC_FC_RET_DATA,str_demod[i]->symbOut,nSymb*sizeof(int));
+ //   rt_free(RT_ALLOC_FC_RET_DATA,str_demod[i],sizeof(demod_mem));    
   }
 
   printf("---------------> Check <-------------------\n\n");  

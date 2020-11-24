@@ -1,6 +1,6 @@
 #ifndef DETECT_LOOP_H
 #define DETECT_LOOP_H
-
+#include "../lib/kiss_fft.h"
 #include <complex.h>
 
 #define CONVERT_TO_32BIT_SIGNED(val, nbits)	\

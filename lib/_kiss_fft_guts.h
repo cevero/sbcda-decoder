@@ -19,7 +19,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "kiss_fft.h"
 #include <limits.h>
 
-#define MAXFACTORS 32
+#define MAXFACTORS 16
 /* e.g. an fft of length 128 has 4 factors 
  as far as kissfft is concerned
  4*4*4*2
@@ -41,6 +41,7 @@ struct kiss_fft_state{
    C_SUBFROM( res , a)  : res -= a
    C_ADDTO( res , a)    : res += a
  * */
+
 #ifdef FIXED_POINT
 #if (FIXED_POINT==32)
 # define FRACBITS 31
