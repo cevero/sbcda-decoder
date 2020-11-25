@@ -2,7 +2,7 @@
 #define DETECT_LOOP_H
 #include "../lib/kiss_fft.h"
 #include <complex.h>
-
+#include "service.h"
 #define CONVERT_TO_32BIT_SIGNED(val, nbits)	\
                                     (int) (val | (0xFFFFFFFF<<(nbits-1)))
 #define TEST_SIGN_BIT(val, nbits)	((val & (0x00000001<<(nbits-1)))!=0)
@@ -41,6 +41,6 @@ typedef enum {
 
 void calc_mask(int * mask,FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS]);
 
-unsigned int detectLoop(int complex *inputSignal, int * prevIdx, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS]);
+unsigned int detectLoop(int complex *inputSignal,cpx * we,int * prevIdx, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS]);
 
 #endif

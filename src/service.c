@@ -295,3 +295,80 @@ void fft_it(float complex * a, int N)
 	bitInvert(a,N);
 	fft_step(a,N);
 }
+
+//%
+cpx KSUM(cpx a, cpx b)
+{
+	cpx res;
+	res.r = a.r+b.r;
+	res.i = a.i+b.i;
+	return res;
+}
+cpx KDIFF(cpx a, cpx b)
+{
+	cpx res;
+	res.r = a.r-b.r;
+	res.i = a.i-b.i;
+	return res;
+}
+cpx KPROD(cpx a, cpx b)
+{
+	cpx res;
+	res.r = a.r*b.r-a.i*b.i;
+	res.i = a.i*b.r+a.r*b.i;
+	return res;
+}
+
+
+void bitInvertO(cpx * a, int N)
+{
+	int i,j,k,mv=N/2,rev=0;
+	cpx aux;
+	for(i=1; i<N;i++){
+		k=i;
+		mv = N/2;
+		rev = 0;
+		while(k>0){
+			if((k%2)>0)
+				rev=rev+mv;
+			k = k/2;
+			mv=mv/2;
+		}
+		{
+		if(i<rev){
+			aux=a[rev];
+			a[rev]=a[i];
+			a[i]=aux;
+		}
+		}
+	}
+
+}
+void fft_stepO(cpx * a,cpx * we,int N)
+{
+	int i,k,m;
+	cpx w,v,h;
+	k=1;
+	while(k<=N/2){
+		m=0;
+		while(m<=(N-2*k)){
+			for(i=m;i<m+k;i++){
+				w.r=we[((i-m)*N/k/2)].r;//cos(PI*(double)(i-m)/(double)(k));
+//				w.r=cos(PI*(double)(i-m)/(double)(k));
+				w.i=-1*we[((i-m)*N/k/2)].i;//(sin(PI*(double)(i-m)/(double)(k))*I);
+//				w.i=-1*(sin(PI*(double)(i-m)/(double)(k))*I);
+				h=KPROD(w,a[i+k]);
+				v=a[i];
+				a[i]=KSUM(h,a[i]);
+				a[i+k]=KDIFF(v,h);
+			}
+			m=m+2*k;
+		}
+		k=k*2;
+	}
+}
+void fft_itO(cpx * a,cpx * we, int N)
+{
+	bitInvertO(a,N);
+	fft_stepO(a,we,N);
+}

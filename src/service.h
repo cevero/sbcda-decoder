@@ -59,4 +59,18 @@ int fft(float complex *tmp, float complex *v, int n);
 void fft_it(float complex * a, int N);
 void fft_step(float complex * a,int N);
 void bitInvert(float complex * a,int N);
+
+
+typedef struct{
+  float r;
+  float i;
+}cpx;
+
+void fft_itO(cpx * a,cpx * we,int N);
+void fft_stepO(cpx * a,cpx * we,int N);
+void bitInvertO(cpx * a,int N);
+cpx KSUM(cpx a, cpx b);
+cpx KDIFF(cpx a, cpx b);
+cpx KPROD(cpx a, cpx b);
+
 #endif
