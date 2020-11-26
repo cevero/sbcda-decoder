@@ -19,7 +19,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "kiss_fft.h"
 #include <limits.h>
 
-#define MAXFACTORS 16
+#define MAXFACTORS 32
 /* e.g. an fft of length 128 has 4 factors 
  as far as kissfft is concerned
  4*4*4*2
@@ -161,5 +161,5 @@ struct kiss_fft_state{
 #define  KISS_FFT_TMP_FREE(ptr) 
 #else
 #define  KISS_FFT_TMP_ALLOC(nbytes) KISS_FFT_MALLOC(nbytes)
-#define  KISS_FFT_TMP_FREE(ptr) KISS_FFT_FREE(ptr)
+#define  KISS_FFT_TMP_FREE(ptr,nbytes) KISS_FFT_FREE(ptr,nbytes)
 #endif

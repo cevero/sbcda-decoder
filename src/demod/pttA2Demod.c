@@ -17,7 +17,7 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp
 
 	int lutAddr;
 	int complex deciSignal;
-	int absDeciSignal, angDeciSignal, theta, piAdd,lpf;
+	int angDeciSignal, theta, piAdd,lpf;
 
 	for(iSymb = 0; iSymb<nSymb;iSymb++){
 		p->symbCount++;
@@ -38,7 +38,7 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp
 		p->thetaNco = ncoTheta[smplPerSymb-1];
 		
 		for(i0=0;i0<smplPerSymb;i0++){			
-			lutAddr = ncoTheta[i0] >> abs(thetaW-freqW);
+			lutAddr = ncoTheta[i0] >> (int)cabs(thetaW-freqW);
 			ncoSignal[i0] = creal(ncoLut[lutAddr])-cimag(ncoLut[lutAddr])*I;
 		}		
 
@@ -80,16 +80,16 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp
 		for (i0 = 0;i0<deciRateSmp;i0++){
 			deciSignal = deciSignal+vgaSignal[i0];
 		}
-		absDeciSignal = cabsf(deciSignal);
+		//absDeciSignal = cabsf(deciSignal);
 		angDeciSignal = atan2(cimag(deciSignal),creal(deciSignal))*pow(2,cordicW-1)/PI;
 		theta = angDeciSignal*pow(2,(thetaW-cordicW));
 		/*
 		*	PLL Loop Filter
 		*/
 
-		piAdd = kpUInt*theta+(p->lfAcc>>(abs(kpExp-kiExp)));		
+		piAdd = kpUInt*theta+(p->lfAcc>>((int)cabs(kpExp-kiExp)));		
 		p->lfAcc +=kiUInt*theta;
-		lpf = piAdd>>(abs(freqW-thetaW-kpExp));
+		lpf = piAdd>>((int)cabs(freqW-thetaW-kpExp));
 		p->ncoDFreq = lpf;
 	}
 rt_free(RT_ALLOC_FC_RET_DATA,inputBlock,smplPerSymb*(sizeof(int complex)));

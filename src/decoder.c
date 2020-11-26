@@ -79,7 +79,7 @@ void UpdateTimeout(FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS], PTTPac
 
 void decoder(int complex *inputSignal, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS], PTTPackage_Typedef * wpckg[NUMBER_OF_DECODERS],demod_mem * str_demod[NUMBER_OF_DECODERS], mem_cic * str_cic[NUMBER_OF_DECODERS], mem_cic * str_cicSmp[NUMBER_OF_DECODERS], sampler_mem * str_smp[NUMBER_OF_DECODERS]){
 	
-	int f,tmp0,n,i1;
+	int f,tmp0=0,n,i1;
 	int iCh,vga, activeList;
 	int vgaExp[NUMBER_OF_DECODERS],vgaMant[NUMBER_OF_DECODERS];
 	int InitFreq[NUMBER_OF_DECODERS];

@@ -231,7 +231,7 @@ static void kf_bfly_generic(
             k += m;
         }
     }
-    KISS_FFT_TMP_FREE(scratch);
+    KISS_FFT_TMP_FREE(scratch,sizeof(kiss_fft_cpx)*p);
 }
 
 static
@@ -343,7 +343,7 @@ kiss_fft_cfg kiss_fft_alloc(int nfft,int inverse_fft,void * mem,size_t * lenmem 
         + sizeof(kiss_fft_cpx)*(nfft-1); /* twiddle factors*/
 
     if ( lenmem==NULL ) {
-        st = ( kiss_fft_cfg)KISS_FFT_MALLOC( memneeded );
+        st = ( kiss_fft_cfg)KISS_FFT_MALLO/C( memneeded );
     }else{
         if (mem != NULL && *lenmem >= memneeded)
             st = (kiss_fft_cfg)mem;
@@ -376,8 +376,8 @@ void kiss_fft_stride(kiss_fft_cfg st,const kiss_fft_cpx *fin,kiss_fft_cpx *fout,
         kiss_fft_cpx * tmpbuf = (kiss_fft_cpx*)KISS_FFT_TMP_ALLOC( sizeof(kiss_fft_cpx)*st->nfft);
         kf_work(tmpbuf,fin,1,in_stride, st->factors,st);
         memcpy(fout,tmpbuf,sizeof(kiss_fft_cpx)*st->nfft);
-        KISS_FFT_TMP_FREE(tmpbuf);
-    }else{
+        KISS_FFT_TMP_FREE(tmpbuf,sizeof(kiss_fft_cpx)*st->nfft);
+    }else{	
         kf_work( fout, fin, 1,in_stride, st->factors,st );
     }
 }

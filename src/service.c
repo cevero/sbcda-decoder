@@ -353,9 +353,9 @@ void fft_stepO(cpx * a,cpx * we,int N)
 		m=0;
 		while(m<=(N-2*k)){
 			for(i=m;i<m+k;i++){
-				w.r=we[((i-m)*N/k/2)].r;//cos(PI*(double)(i-m)/(double)(k));
+				w.r=we[((i-m)*N/k/2)].r;
 //				w.r=cos(PI*(double)(i-m)/(double)(k));
-				w.i=-1*we[((i-m)*N/k/2)].i;//(sin(PI*(double)(i-m)/(double)(k))*I);
+				w.i=we[((i-m)*N/k/2)].i;
 //				w.i=-1*(sin(PI*(double)(i-m)/(double)(k))*I);
 				h=KPROD(w,a[i+k]);
 				v=a[i];

@@ -26,7 +26,7 @@ extern "C" {
 
 #if 1
 #define KISS_FFT_MALLOC(nbytes) rt_alloc(RT_ALLOC_FC_RET_DATA, nbytes)
-#define KISS_FFT_FREE 
+#define KISS_FFT_FREE(ptr,nbytes) rt_free(RT_ALLOC_FC_RET_DATA,ptr,nbytes)
 #else
 #ifdef USE_SIMD
 # include <xmmintrin.h>

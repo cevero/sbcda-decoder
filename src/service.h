@@ -62,8 +62,8 @@ void bitInvert(float complex * a,int N);
 
 
 typedef struct{
-  float r;
-  float i;
+float r;
+float i;
 }cpx;
 
 void fft_itO(cpx * a,cpx * we,int N);
