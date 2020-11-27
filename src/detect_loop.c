@@ -6,8 +6,9 @@
 #include "detect_loop.h"
 #include "service.h"
 #include "rt/rt_api.h"
-#include "../lib/kiss_fft.h"
-#include "../lib/_kiss_fft_guts.h"
+#include "../lib/fix_fft.c"  
+//#include "../lib/kiss_fft.h"
+//#include "../lib/_kiss_fft_guts.h"
 //int prevIdx[] = {[0 ... DFT_LENGTH-1]=0};
 //FreqsRecord_Typedef PTT_DP_LIST[NUMBER_OF_DECODERS];
 /* DDS_Mask
@@ -56,7 +57,7 @@ void calc_mask(int * mask, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS]
 }
 //#define microFFT
 //#define kissFFT
-unsigned int detectLoop(int complex *inputSignal, kiss_fft_cfg cfg,int * prevIdx, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS])
+unsigned int detectLoop(int complex *inputSignal, int * prevIdx, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS])
 {
 
   int i, n, currIdx = 0;
@@ -70,8 +71,10 @@ unsigned int detectLoop(int complex *inputSignal, kiss_fft_cfg cfg,int * prevIdx
 //  float complex * scratch = rt_alloc(RT_ALLOC_FC_RET_DATA,DFT_LENGTH*sizeof(float complex));
 //  int fftSignal;
 
-  kiss_fft_cpx *fftSignal = rt_alloc(RT_ALLOC_FC_RET_DATA,DFT_LENGTH*sizeof(kiss_fft_cpx));
-  kiss_fft_cpx *fftOutput = rt_alloc(RT_ALLOC_FC_RET_DATA,DFT_LENGTH*sizeof(kiss_fft_cpx));
+//  kiss_fft_cpx *fftSignal = rt_alloc(RT_ALLOC_FC_RET_DATA,DFT_LENGTH*sizeof(kiss_fft_cpx));
+//  kiss_fft_cpx *fftOutput = rt_alloc(RT_ALLOC_FC_RET_DATA,DFT_LENGTH*sizeof(kiss_fft_cpx));
+  short * fftSignalRe = rt_alloc(RT_ALLOC_FC_RET_DATA,DFT_LENGTH*sizeof(short));
+  short * fftSignalIm = rt_alloc(RT_ALLOC_FC_RET_DATA,DFT_LENGTH*sizeof(short));
 
   unsigned int nPass=0;
   int assigned_decoder = 0;
@@ -91,19 +94,19 @@ unsigned int detectLoop(int complex *inputSignal, kiss_fft_cfg cfg,int * prevIdx
   for (n = 0; n < DFT_LENGTH; n++) {
 //    mask[n] = 500;
     if (n<WINDOW_LENGTH) {
-      fftSignal[n].r = (int) creal(inputSignal[n]);
-      fftSignal[n].i = (int) cimag(inputSignal[n]);
+      fftSignalRe[n] = (int) creal(inputSignal[n]);
+      fftSignalIm[n] = (int) cimag(inputSignal[n]);
     } else {
-      fftSignal[n].r = 0;
-      fftSignal[n].i = 0;
+      fftSignalRe[n] = 0;
+      fftSignalIm[n] = 0;
     }
   }
 
 //  fft(scratch,fftSignal,DFT_LENGTH);
 //  fft_itO(fftSignal,we,DFT_LENGTH);
-  kiss_fft(cfg,fftSignal,fftOutput);
-  rt_free(RT_ALLOC_FC_RET_DATA,fftSignal,DFT_LENGTH*sizeof(kiss_fft_cpx));
-
+//  kiss_fft(cfg,fftSignal,fftOutput);
+//  rt_free(RT_ALLOC_FC_RET_DATA,fftSignal,DFT_LENGTH*sizeof(kiss_fft_cpx));
+  fix_fft(fftSignalRe,fftSignalIm,11,0);
   int * mask = rt_alloc(RT_ALLOC_FC_RET_DATA,DFT_LENGTH*sizeof(int));
   for (n = 0; n < DFT_LENGTH; n++)
 	  mask[n]=500;
@@ -113,7 +116,7 @@ unsigned int detectLoop(int complex *inputSignal, kiss_fft_cfg cfg,int * prevIdx
   // Compare fft amplitude with mask 
   for(i = 0; i<DFT_LENGTH; i++){
 //      fftSignal[i] = fftSignal[i]/(2048);//2048/1.6 keep Vga values
-	abs = (int) sqrt(fftOutput[i].r*fftOutput[i].r+fftOutput[i].i*fftOutput[i].i);
+	abs = (int) sqrt(fftSignalRe[i]*fftSignalRe[i]+fftSignalIm[i]*fftSignalIm[i]);
         if(abs>mask[i]){
 //          printf("[%d]: %d, mask: %d\n", i,aux, mask[i]);
             passSet->Idx[nPass] = i;
@@ -122,8 +125,11 @@ unsigned int detectLoop(int complex *inputSignal, kiss_fft_cfg cfg,int * prevIdx
       }
   }
   //	printf("nPass: %d\n",nPass);
-  rt_free(RT_ALLOC_FC_RET_DATA,fftOutput,DFT_LENGTH*sizeof(kiss_fft_cpx));
+  // rt_free(RT_ALLOC_FC_RET_DATA,fftOutput,DFT_LENGTH*sizeof(kiss_fft_cpx));
     
+  rt_free(RT_ALLOC_FC_RET_DATA,fftSignalRe,DFT_LENGTH*sizeof(short));
+  rt_free(RT_ALLOC_FC_RET_DATA,fftSignalIm,DFT_LENGTH*sizeof(short));
+
     while(peakAmp > 0 && assigned_decoder != FREQ_INVALID){
         assigned_decoder = FREQ_INVALID;
         //Loop for find decoder free

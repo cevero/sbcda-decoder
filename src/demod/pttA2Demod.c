@@ -8,8 +8,8 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp
 	
 	int complex * inputBlock = rt_alloc(RT_ALLOC_FC_RET_DATA,smplPerSymb*sizeof(int complex));
 	int complex * ncoSignal = rt_alloc(RT_ALLOC_FC_RET_DATA,smplPerSymb*sizeof(int complex));
-	float complex * cplxMult = rt_alloc(RT_ALLOC_FC_RET_DATA,smplPerSymb*sizeof(float complex));
-	float complex * mfSignal = rt_alloc(RT_ALLOC_FC_RET_DATA,(smplPerSymb/deciRate)*sizeof(float complex));
+	int complex * cplxMult = rt_alloc(RT_ALLOC_FC_RET_DATA,smplPerSymb*sizeof(int complex));
+	int complex * mfSignal = rt_alloc(RT_ALLOC_FC_RET_DATA,(smplPerSymb/deciRate)*sizeof(int complex));
 	int ncoFreq; 
 	int * demodSignal = rt_alloc(RT_ALLOC_FC_RET_DATA,(smplPerSymb/deciRate)*sizeof(int));
 	int * ncoTheta = rt_alloc(RT_ALLOC_FC_RET_DATA,smplPerSymb*sizeof(int));
@@ -49,7 +49,7 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp
 
 		for (i0=0;i0<smplPerSymb;i0++){
 			cplxMult[i0] = inputBlock[i0]*ncoSignal[i0];
-			cplxMult[i0] = ((float complex) cplxMult[i0])*pow(2,-(ncoAmpW-1));
+			cplxMult[i0] = ((int complex) cplxMult[i0])*pow(2,-(ncoAmpW-1));
 			cplxMult[i0] = floor(creal(cplxMult[i0]))+floor(cimag(cplxMult[i0]))*I;
 		}
 
@@ -95,8 +95,8 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp
 rt_free(RT_ALLOC_FC_RET_DATA,inputBlock,smplPerSymb*(sizeof(int complex)));
 rt_free(RT_ALLOC_FC_RET_DATA,ncoSignal,smplPerSymb*(sizeof(int complex)));
 rt_free(RT_ALLOC_FC_RET_DATA,vgaSignal,(smplPerSymb/deciRate)*sizeof(int complex));
-rt_free(RT_ALLOC_FC_RET_DATA,cplxMult,smplPerSymb*(sizeof(float complex)));   
-rt_free(RT_ALLOC_FC_RET_DATA,mfSignal,(smplPerSymb/deciRate)*(sizeof(float complex)));
+rt_free(RT_ALLOC_FC_RET_DATA,cplxMult,smplPerSymb*(sizeof(int complex)));   
+rt_free(RT_ALLOC_FC_RET_DATA,mfSignal,(smplPerSymb/deciRate)*(sizeof(int complex)));
 rt_free(RT_ALLOC_FC_RET_DATA,demodSignal,(smplPerSymb/deciRate)*sizeof(int));
 rt_free(RT_ALLOC_FC_RET_DATA,ncoTheta,(smplPerSymb)*sizeof(int));
 }

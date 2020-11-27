@@ -1,7 +1,7 @@
 #include "../service.h"
 #include "cicFilterCplxStep.h"
 
-void cicFilterCplxStep(float complex *inputSignal, mem_cic * str,float complex  *outputSignal, int decimation, int delay, int inputLength)
+void cicFilterCplxStep(int complex *inputSignal, mem_cic * str,int complex  *outputSignal, int decimation, int delay, int inputLength)
 {
   // Generare the CIC filter output for an input signal window 1280 samples
   // inputSignal: a complex signal with k*decimation samples.

@@ -43,5 +43,5 @@ void calc_mask(int * mask,FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS])
 
 //unsigned int detectLoop(int complex *inputSignal,int * prevIdx, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS]);
 
-unsigned int detectLoop(int complex *inputSignal, kiss_fft_cfg cfg,int * prevIdx, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS]);
+unsigned int detectLoop(int complex *inputSignal, int * prevIdx, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS]);
 #endif

@@ -10,6 +10,6 @@ typedef struct {
   int accRe, accIm, accDlyIdx;
 } mem_cic; 
 
-void cicFilterCplxStep(float complex *inputSignal, mem_cic * str,float complex  *outputSignal, int decimation, int delay, int inputLength);
+void cicFilterCplxStep(int complex *inputSignal, mem_cic * str,int complex  *outputSignal, int decimation, int delay, int inputLength);
 
 #endif

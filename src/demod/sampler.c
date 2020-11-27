@@ -9,10 +9,10 @@ void sampler(int *demodSignal, sampler_mem * str_smp, mem_cic * str)
 {
 	int symbOut,idx;
 	int i,i0,absMovAvg,offset,delayPlusOffset, integerDly, fractDly, delayDiff, delayUnWrap,x;
-	float delay, delayFlt,angMovAvg;
-	float complex freqShftSignal[] = {[0 ... nSymb-1] = 0}, movingAvg, cicSignal;
-	float complex sqrdSignal[] = {[0 ... nSymb-1] = 0};
-	float accSymb;
+	int delay, delayFlt,angMovAvg;
+	int complex freqShftSignal[] = {[0 ... nSymb-1] = 0}, movingAvg, cicSignal;
+	int complex sqrdSignal[] = {[0 ... nSymb-1] = 0};
+	int accSymb;
   //apply frequency shift
 	
 	for(i = 0; i<nSymb; i++){		

@@ -84,8 +84,8 @@ for(i=0;i<DFT_LENGTH/2;i++){//				     -*
 }//-----------------------------------------------------------*
 */
 
-  kiss_fft_cfg cfg;
-  cfg = kiss_fft_alloc(DFT_LENGTH,0,NULL,NULL);
+//  kiss_fft_cfg cfg;
+//  cfg = kiss_fft_alloc(DFT_LENGTH,0,NULL,NULL);
 
   for(iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
     printf("Clearing decoder %d\n",iCh);
@@ -121,7 +121,7 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
    detect_time = rt_time_get_us();
    //printf("Starting detection loop ! %d ms\n", detect_time/1000);
 
-   tmp0 =  detectLoop(inputSignal, cfg, prevIdx, PTT_DP_LIST);
+   tmp0 =  detectLoop(inputSignal, prevIdx, PTT_DP_LIST);
    
    detect_time = rt_time_get_us()-detect_time;
    printf("Detect: %d ms\n",detect_time/1000);
@@ -224,7 +224,6 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
   rt_free(RT_ALLOC_FC_RET_DATA,vgaExp,NUMBER_OF_DECODERS*sizeof(int));
   rt_free(RT_ALLOC_FC_RET_DATA,vgaMant,NUMBER_OF_DECODERS*sizeof(int));
   rt_free(RT_ALLOC_FC_RET_DATA,InitFreq,NUMBER_OF_DECODERS*sizeof(int));
-  rt_free(RT_ALLOC_FC_RET_DATA,cfg,(sizeof(struct kiss_fft_state)+sizeof(kiss_fft_cpx)*(DFT_LENGTH-1)));
   
   for(i=0;i<NUMBER_OF_DECODERS;i++){
     rt_free(RT_ALLOC_FC_RET_DATA,PTT_DP_LIST[i],sizeof(FreqsRecord_Typedef));
