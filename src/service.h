@@ -61,6 +61,7 @@ void fft_step(float complex * a,int N);
 void bitInvert(float complex * a,int N);
 
 
+
 typedef struct{
 float r;
 float i;
@@ -74,3 +75,16 @@ cpx KDIFF(cpx a, cpx b);
 cpx KPROD(cpx a, cpx b);
 
 #endif
+
+//#define CLUSTER_L1
+
+#ifdef CLUSTER_L1
+#define MEM_ALLOC RT_ALLOC_CL_DATA
+#else
+#ifdef CLUSTER_L2
+#define MEM_ALLOC RT_ALLOC_L2_CL_DATA
+#else
+#define MEM_ALLOC RT_ALLOC_FC_RET_DATA //L2 FABRIC CONTROLLER
+#endif
+#endif
+

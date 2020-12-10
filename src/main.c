@@ -4,8 +4,9 @@
 #include "inputSignalMin.h"
 #include "../lib/kiss_fft.h"
 #include "../lib/_kiss_fft_guts.h"
+#include "service.h"
 #define NUMBER_OF_SAMPLES 47360 
-int main()
+int main_receiver()
 {
   rt_freq_set(RT_FREQ_DOMAIN_FC,200000000);
   int n0;
@@ -18,8 +19,8 @@ int main()
  
   sampler_mem * str_smp[NUMBER_OF_DECODERS];
   for (i = 0; i < NUMBER_OF_DECODERS; ++i){
-    str_smp[i] = rt_alloc(RT_ALLOC_FC_RET_DATA,sizeof(sampler_mem));
-    str_smp[i]->smplBuffer = rt_alloc(RT_ALLOC_FC_RET_DATA,2*smplPerSymb*(sizeof(int)));
+    str_smp[i] = rt_alloc(MEM_ALLOC,sizeof(sampler_mem));
+    str_smp[i]->smplBuffer = rt_alloc(MEM_ALLOC,2*smplPerSymb*(sizeof(int)));
   }
 
   //CIC filter of demod
@@ -33,43 +34,43 @@ int main()
   //CIC filter of sampler
   mem_cic * str_cicSmp[NUMBER_OF_DECODERS];
   for (i = 0; i < NUMBER_OF_DECODERS; ++i){
-    str_cicSmp[i]= rt_alloc(RT_ALLOC_FC_RET_DATA,sizeof(mem_cic));
-    str_cicSmp[i]->previousAccRe = rt_alloc(RT_ALLOC_FC_RET_DATA,delaySmp*sizeof(int));
-    str_cicSmp[i]->previousAccIm = rt_alloc(RT_ALLOC_FC_RET_DATA,delaySmp*sizeof(int));
+    str_cicSmp[i]= rt_alloc(MEM_ALLOC,sizeof(mem_cic));
+    str_cicSmp[i]->previousAccRe = rt_alloc(MEM_ALLOC,delaySmp*sizeof(int));
+    str_cicSmp[i]->previousAccIm = rt_alloc(MEM_ALLOC,delaySmp*sizeof(int));
   }
 
   //demod_mem stores accumulators, symbOut and symbLock
   demod_mem * str_demod[NUMBER_OF_DECODERS];
   for(i=0;i<NUMBER_OF_DECODERS;i++){
-    str_demod[i] = rt_alloc(RT_ALLOC_FC_RET_DATA,sizeof(demod_mem));
-    str_demod[i]->symbLock = rt_alloc(RT_ALLOC_FC_RET_DATA,nSymb*sizeof(int));
-    str_demod[i]->symbOut = rt_alloc(RT_ALLOC_FC_RET_DATA,nSymb*sizeof(int));
+    str_demod[i] = rt_alloc(MEM_ALLOC,sizeof(demod_mem));
+    str_demod[i]->symbLock = rt_alloc(MEM_ALLOC,nSymb*sizeof(int));
+    str_demod[i]->symbOut = rt_alloc(MEM_ALLOC,nSymb*sizeof(int));
   }
 
   // struct stores the interface (detect to demod) parameters
   FreqsRecord_Typedef *PTT_DP_LIST[NUMBER_OF_DECODERS];
   for(i=0;i<NUMBER_OF_DECODERS;i++){
-    PTT_DP_LIST[i] = rt_alloc(RT_ALLOC_FC_RET_DATA,sizeof(FreqsRecord_Typedef));
+    PTT_DP_LIST[i] = rt_alloc(MEM_ALLOC,sizeof(FreqsRecord_Typedef));
   }
   
 
   // This struct is used to control the FSM and show bit results
   PTTPackage_Typedef * wpckg[NUMBER_OF_DECODERS];
   for(i=0;i<NUMBER_OF_DECODERS;i++){
-    wpckg[i] = rt_alloc(RT_ALLOC_FC_RET_DATA,sizeof(PTTPackage_Typedef));
+    wpckg[i] = rt_alloc(MEM_ALLOC,sizeof(PTTPackage_Typedef));
   }
 
-  int * prevIdx = rt_alloc(RT_ALLOC_FC_RET_DATA,DFT_LENGTH*sizeof(int));
+  int * prevIdx = rt_alloc(MEM_ALLOC,DFT_LENGTH*sizeof(int));
   for(i=0;i<DFT_LENGTH;i++){
 	  prevIdx[i]=0;
   }
 
   printf("***------------ ALL READY --------------***\n");
-  int complex *inputSignal = rt_alloc(RT_ALLOC_FC_RET_DATA,WINDOW_LENGTH*sizeof(int complex));
+  int complex *inputSignal = rt_alloc(MEM_ALLOC,WINDOW_LENGTH*sizeof(int complex));
   int tmp0=0,f=0,iCh,vga, activeList, nWind, spWind,iSymb,i2;
-  int * vgaExp = rt_alloc(RT_ALLOC_FC_RET_DATA,NUMBER_OF_DECODERS*sizeof(int));
-  int * vgaMant = rt_alloc(RT_ALLOC_FC_RET_DATA,NUMBER_OF_DECODERS*sizeof(int));
-  int * InitFreq = rt_alloc(RT_ALLOC_FC_RET_DATA,NUMBER_OF_DECODERS*sizeof(int));
+  int * vgaExp = rt_alloc(MEM_ALLOC,NUMBER_OF_DECODERS*sizeof(int));
+  int * vgaMant = rt_alloc(MEM_ALLOC,NUMBER_OF_DECODERS*sizeof(int));
+  int * InitFreq = rt_alloc(MEM_ALLOC,NUMBER_OF_DECODERS*sizeof(int));
   int detect_time=0, demod_time=0, decod_time=0, total_time=0,aux_time, decod_per_channel=0;
 #ifdef DEBUG_DEMOD
   int debug = 0;
@@ -77,7 +78,7 @@ int main()
 
 /*
 //Calculate LUT for fft computation---------------------------*
-cpx * we = rt_alloc(RT_ALLOC_FC_RET_DATA,1024*sizeof(cpx));//-*
+cpx * we = rt_alloc(MEM_ALLOC,1024*sizeof(cpx));//-*
 for(i=0;i<DFT_LENGTH/2;i++){//				     -*
 	we[i].r=(cos(2*PI*i/DFT_LENGTH));//    		     -*
 	we[i].i=-1*(sin(2*PI*i/DFT_LENGTH));//               -*
@@ -219,26 +220,26 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
   printf("total time %d\n",total_time/1000);
   }//END FOR NSIM 
 
-  rt_free(RT_ALLOC_FC_RET_DATA,prevIdx,DFT_LENGTH*sizeof(int));
-  rt_free(RT_ALLOC_FC_RET_DATA,inputSignal,WINDOW_LENGTH*sizeof(int complex));
-  rt_free(RT_ALLOC_FC_RET_DATA,vgaExp,NUMBER_OF_DECODERS*sizeof(int));
-  rt_free(RT_ALLOC_FC_RET_DATA,vgaMant,NUMBER_OF_DECODERS*sizeof(int));
-  rt_free(RT_ALLOC_FC_RET_DATA,InitFreq,NUMBER_OF_DECODERS*sizeof(int));
+  rt_free(MEM_ALLOC,prevIdx,DFT_LENGTH*sizeof(int));
+  rt_free(MEM_ALLOC,inputSignal,WINDOW_LENGTH*sizeof(int complex));
+  rt_free(MEM_ALLOC,vgaExp,NUMBER_OF_DECODERS*sizeof(int));
+  rt_free(MEM_ALLOC,vgaMant,NUMBER_OF_DECODERS*sizeof(int));
+  rt_free(MEM_ALLOC,InitFreq,NUMBER_OF_DECODERS*sizeof(int));
   
   for(i=0;i<NUMBER_OF_DECODERS;i++){
-    rt_free(RT_ALLOC_FC_RET_DATA,PTT_DP_LIST[i],sizeof(FreqsRecord_Typedef));
-    rt_free(RT_ALLOC_FC_RET_DATA,wpckg[i],sizeof(PTTPackage_Typedef));
-    rt_free(RT_ALLOC_FC_RET_DATA,str_smp[i]->smplBuffer,2*smplPerSymb*(sizeof(int)));   
-    rt_free(RT_ALLOC_FC_RET_DATA,str_smp[i],sizeof(sampler_mem));       
-    rt_free(RT_ALLOC_FC_RET_DATA,str_cicSmp[i]->previousAccRe,delaySmp*sizeof(int));
-    rt_free(RT_ALLOC_FC_RET_DATA,str_cicSmp[i]->previousAccIm,delaySmp*sizeof(int));
-    rt_free(RT_ALLOC_FC_RET_DATA,str_cicSmp[i],sizeof(mem_cic));
-    rt_free(RT_ALLOC_FC_RET_DATA,str_cic[i]->previousAccRe,delayIdx*sizeof(int));
-    rt_free(RT_ALLOC_FC_RET_DATA,str_cic[i]->previousAccIm,delayIdx*sizeof(int));
-    rt_free(RT_ALLOC_FC_RET_DATA,str_cic[i],sizeof(mem_cic));        
-    rt_free(RT_ALLOC_FC_RET_DATA,str_demod[i]->symbLock,nSymb*sizeof(int));
-    rt_free(RT_ALLOC_FC_RET_DATA,str_demod[i]->symbOut,nSymb*sizeof(int));
-    rt_free(RT_ALLOC_FC_RET_DATA,str_demod[i],sizeof(demod_mem));    
+    rt_free(MEM_ALLOC,PTT_DP_LIST[i],sizeof(FreqsRecord_Typedef));
+    rt_free(MEM_ALLOC,wpckg[i],sizeof(PTTPackage_Typedef));
+    rt_free(MEM_ALLOC,str_smp[i]->smplBuffer,2*smplPerSymb*(sizeof(int)));   
+    rt_free(MEM_ALLOC,str_smp[i],sizeof(sampler_mem));       
+    rt_free(MEM_ALLOC,str_cicSmp[i]->previousAccRe,delaySmp*sizeof(int));
+    rt_free(MEM_ALLOC,str_cicSmp[i]->previousAccIm,delaySmp*sizeof(int));
+    rt_free(MEM_ALLOC,str_cicSmp[i],sizeof(mem_cic));
+    rt_free(MEM_ALLOC,str_cic[i]->previousAccRe,delayIdx*sizeof(int));
+    rt_free(MEM_ALLOC,str_cic[i]->previousAccIm,delayIdx*sizeof(int));
+    rt_free(MEM_ALLOC,str_cic[i],sizeof(mem_cic));        
+    rt_free(MEM_ALLOC,str_demod[i]->symbLock,nSymb*sizeof(int));
+    rt_free(MEM_ALLOC,str_demod[i]->symbOut,nSymb*sizeof(int));
+    rt_free(MEM_ALLOC,str_demod[i],sizeof(demod_mem));    
   }
 
   printf("---------------> Check <-------------------\n\n");  

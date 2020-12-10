@@ -10,8 +10,8 @@ void cicFilterCplxStep(int complex *inputSignal, mem_cic * str,int complex  *out
 
   int iSmplOut = 0;
   int deciCount = 0;
-  int * previousAccRe = rt_alloc(RT_ALLOC_FC_RET_DATA,delay*sizeof(int));
-  int * previousAccIm = rt_alloc(RT_ALLOC_FC_RET_DATA,delay*sizeof(int));
+  int * previousAccRe = rt_alloc(MEM_ALLOC,delay*sizeof(int));
+  int * previousAccIm = rt_alloc(MEM_ALLOC,delay*sizeof(int));
   int accDlyIdx, accRe, accIm, acc, iSmpl,diffRe,diffIm, i; 
 ;
 
@@ -83,6 +83,6 @@ void cicFilterCplxStep(int complex *inputSignal, mem_cic * str,int complex  *out
     str->previousAccIm[i] = previousAccIm[i];
   }
   str->accDlyIdx = accDlyIdx;
-  rt_free(RT_ALLOC_FC_RET_DATA,previousAccRe,delay*sizeof(int));
-  rt_free(RT_ALLOC_FC_RET_DATA,previousAccIm,delay*sizeof(int));
+  rt_free(MEM_ALLOC,previousAccRe,delay*sizeof(int));
+  rt_free(MEM_ALLOC,previousAccIm,delay*sizeof(int));
 }

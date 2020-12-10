@@ -66,20 +66,20 @@ unsigned int detectLoop(int complex *inputSignal, int * prevIdx, FreqsRecord_Typ
   unsigned int peakAmp = 1, currAmp = 0, iPass=0, peakPos, iPrevIdx;
 
 //int mask;
-//  cpx * fftSignal = rt_alloc(RT_ALLOC_FC_RET_DATA,DFT_LENGTH*sizeof(cpx));
-//  float complex * fftSignal = rt_alloc(RT_ALLOC_FC_RET_DATA,DFT_LENGTH*sizeof(float complex));
-//  float complex * scratch = rt_alloc(RT_ALLOC_FC_RET_DATA,DFT_LENGTH*sizeof(float complex));
+//  cpx * fftSignal = rt_alloc(MEM_ALLOC,DFT_LENGTH*sizeof(cpx));
+//  float complex * fftSignal = rt_alloc(MEM_ALLOC,DFT_LENGTH*sizeof(float complex));
+//  float complex * scratch = rt_alloc(MEM_ALLOC,DFT_LENGTH*sizeof(float complex));
 //  int fftSignal;
 
-//  kiss_fft_cpx *fftSignal = rt_alloc(RT_ALLOC_FC_RET_DATA,DFT_LENGTH*sizeof(kiss_fft_cpx));
-//  kiss_fft_cpx *fftOutput = rt_alloc(RT_ALLOC_FC_RET_DATA,DFT_LENGTH*sizeof(kiss_fft_cpx));
-  short * fftSignalRe = rt_alloc(RT_ALLOC_FC_RET_DATA,DFT_LENGTH*sizeof(short));
-  short * fftSignalIm = rt_alloc(RT_ALLOC_FC_RET_DATA,DFT_LENGTH*sizeof(short));
+//  kiss_fft_cpx *fftSignal = rt_alloc(MEM_ALLOC,DFT_LENGTH*sizeof(kiss_fft_cpx));
+//  kiss_fft_cpx *fftOutput = rt_alloc(MEM_ALLOC,DFT_LENGTH*sizeof(kiss_fft_cpx));
+  short * fftSignalRe = rt_alloc(MEM_ALLOC,DFT_LENGTH*sizeof(short));
+  short * fftSignalIm = rt_alloc(MEM_ALLOC,DFT_LENGTH*sizeof(short));
 
   unsigned int nPass=0;
   int assigned_decoder = 0;
   /*save the window of signal in freq*/
-  PassSet_Typedef * passSet = rt_alloc(RT_ALLOC_FC_RET_DATA,sizeof(PassSet_Typedef));
+  PassSet_Typedef * passSet = rt_alloc(MEM_ALLOC,sizeof(PassSet_Typedef));
   
   memset(passSet->Idx,0,sizeof(passSet->Idx));
   memset(passSet->Amp,0,sizeof(passSet->Amp));
@@ -105,9 +105,9 @@ unsigned int detectLoop(int complex *inputSignal, int * prevIdx, FreqsRecord_Typ
 //  fft(scratch,fftSignal,DFT_LENGTH);
 //  fft_itO(fftSignal,we,DFT_LENGTH);
 //  kiss_fft(cfg,fftSignal,fftOutput);
-//  rt_free(RT_ALLOC_FC_RET_DATA,fftSignal,DFT_LENGTH*sizeof(kiss_fft_cpx));
+//  rt_free(MEM_ALLOC,fftSignal,DFT_LENGTH*sizeof(kiss_fft_cpx));
   fix_fft(fftSignalRe,fftSignalIm,11,0);
-  int * mask = rt_alloc(RT_ALLOC_FC_RET_DATA,DFT_LENGTH*sizeof(int));
+  int * mask = rt_alloc(MEM_ALLOC,DFT_LENGTH*sizeof(int));
   for (n = 0; n < DFT_LENGTH; n++)
 	  mask[n]=500;
   
@@ -125,10 +125,10 @@ unsigned int detectLoop(int complex *inputSignal, int * prevIdx, FreqsRecord_Typ
       }
   }
   //	printf("nPass: %d\n",nPass);
-  // rt_free(RT_ALLOC_FC_RET_DATA,fftOutput,DFT_LENGTH*sizeof(kiss_fft_cpx));
+  // rt_free(MEM_ALLOC,fftOutput,DFT_LENGTH*sizeof(kiss_fft_cpx));
     
-  rt_free(RT_ALLOC_FC_RET_DATA,fftSignalRe,DFT_LENGTH*sizeof(short));
-  rt_free(RT_ALLOC_FC_RET_DATA,fftSignalIm,DFT_LENGTH*sizeof(short));
+  rt_free(MEM_ALLOC,fftSignalRe,DFT_LENGTH*sizeof(short));
+  rt_free(MEM_ALLOC,fftSignalIm,DFT_LENGTH*sizeof(short));
 
     while(peakAmp > 0 && assigned_decoder != FREQ_INVALID){
         assigned_decoder = FREQ_INVALID;
@@ -189,8 +189,8 @@ unsigned int detectLoop(int complex *inputSignal, int * prevIdx, FreqsRecord_Typ
     prevIdx[passSet->Idx[iPass]]=1;
   }
  
-//  rt_free(RT_ALLOC_FC_RET_DATA,fftSignal,DFT_LENGTH*sizeof(cpx));
-  rt_free(RT_ALLOC_FC_RET_DATA,passSet,sizeof(PassSet_Typedef));
-  rt_free(RT_ALLOC_FC_RET_DATA,mask,DFT_LENGTH*sizeof(int));
+//  rt_free(MEM_ALLOC,fftSignal,DFT_LENGTH*sizeof(cpx));
+  rt_free(MEM_ALLOC,passSet,sizeof(PassSet_Typedef));
+  rt_free(MEM_ALLOC,mask,DFT_LENGTH*sizeof(int));
   return ret_value;
 }
