@@ -31,16 +31,24 @@
 
 void calc_mask(int * mask, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS])
 {
-//  int hat_a;
   int hat_f, hat_f_left, hat_f_right, mask_cnt;
   int i,i0;
   int gBand = 52;
+  #ifdef LEVELS
+  int hat_a,L1,L2,L3,cnt_band;
+  #endif
 
   for (i = 0; i < NUMBER_OF_DECODERS; i++){
     if(PTT_DP_LIST[i]->detect_state != FREQ_NONE){
       hat_f = PTT_DP_LIST[i]->freq_idx;
-//      hat_a = PTT_DP_LIST[i]->freq_amp;
-    
+      #ifdef LEVELS
+      hat_a = PTT_DP_LIST[i]->freq_amp;
+      L1 = 3*hat_a/32;
+      L2 = hat_a/6;
+      L3 = 2*hat_a;
+      cnt_band = 0;
+      #endif
+
       hat_f_left = (hat_f<52)? (hat_f+2048-52):(hat_f-52);
       hat_f_right = (hat_f>2047-52)? (hat_f+52-2048):(hat_f+52);
       mask_cnt = hat_f_left;
@@ -49,7 +57,21 @@ void calc_mask(int * mask, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS]
         if (mask_cnt == 2048){
             mask_cnt=0;
         }
+        #ifdef LEVELS
+        if(cnt_band<14 || cnt_band>90){
+          if(mask[mask_cnt] < L1)
+            mask[mask_cnt]=L1;
+        }else if((cnt_band>=14 && cnt_band<25) || (cnt_band>78 && cnt_band<90)){
+          if(mask[mask_cnt]<L2)
+            mask[mask_cnt]=L2;
+        }else if(cnt_band>=25 && cnt_band<=78){
+          if(mask[mask_cnt]<L3)
+            mask[mask_cnt]=L3;
+        }
+        cnt_band++;
+        #else
         mask[mask_cnt] = 0xFFFF;
+        #endif
         mask_cnt++;
       }
     }
