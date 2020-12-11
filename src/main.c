@@ -6,7 +6,7 @@
 #include "../lib/_kiss_fft_guts.h"
 #include "service.h"
 #define NUMBER_OF_SAMPLES 47360 
-int main_receiver()
+int main()
 {
   rt_freq_set(RT_FREQ_DOMAIN_FC,200000000);
   int n0;
@@ -179,12 +179,12 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
     for (iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
       if(PTT_DP_LIST[iCh]->detect_state==FREQ_DECODING){
 //      printf("Starting demod process channel %d\n",iCh);
-//      demod_time = rt_time_get_us();
-	decod_per_channel = rt_time_get_us();
+        demod_time = rt_time_get_us();
+//	decod_per_channel = rt_time_get_us();
         pttA2Demod(inputSignal, InitFreq[iCh], vgaMant[iCh], vgaExp[iCh], str_demod[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh]);
 
-  //      demod_time = rt_time_get_us()-demod_time;
-//	printf("Demod time: %d ms \n",demod_time/1000);
+        demod_time = rt_time_get_us()-demod_time;
+	printf("Demod time: %d ms \n",demod_time/1000);
         for(iSymb = 0;iSymb<nSymb;iSymb++){
             if(str_demod[iCh]->symbLock[iSymb]){
 //		    printf("smb %d",str_demod[iCh]->symbOut[i1]);
@@ -210,8 +210,8 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
             }
           }
         }
-     	decod_per_channel= rt_time_get_us()-decod_per_channel;
-	printf("decod_time %d: %d ms\n",iCh,decod_per_channel/1000);
+//     	decod_per_channel= rt_time_get_us()-decod_per_channel;
+//	printf("decod_time %d: %d ms\n",iCh,decod_per_channel/1000);
       }
     }//END FOR SCROLLING CHANNELS
     

@@ -28,7 +28,7 @@
 * the amplitude of the mask will be 3*â/32.
 *
 */
-
+#define LEVELS
 void calc_mask(int * mask, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS])
 {
   int hat_f, hat_f_left, hat_f_right, mask_cnt;
@@ -138,7 +138,8 @@ unsigned int detectLoop(int complex *inputSignal, int * prevIdx, FreqsRecord_Typ
   // Compare fft amplitude with mask 
   for(i = 0; i<DFT_LENGTH; i++){
 //      fftSignal[i] = fftSignal[i]/(2048);//2048/1.6 keep Vga values
-	abs = (int) sqrt(fftSignalRe[i]*fftSignalRe[i]+fftSignalIm[i]*fftSignalIm[i]);
+	abs = (int) (fftSignalRe[i]*fftSignalRe[i]+fftSignalIm[i]*fftSignalIm[i]);
+	abs = abs>>9;//normalize
         if(abs>mask[i]){
 //          printf("[%d]: %d, mask: %d\n", i,aux, mask[i]);
             passSet->Idx[nPass] = i;

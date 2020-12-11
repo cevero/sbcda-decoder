@@ -2,38 +2,51 @@
 #include "sampler.h"
 #include "cicFilterCplxStep.h"
 
-int complex lutHalfCycle[] = {127+0*I,117+49*I,90+90*I,49+117*I,
-								0+127*I,-49+117*I,-90+90*I,-117+49*I};
-								
+//int complex lutHalfCycle[] = {127+0*I,117+49*I,90+90*I,49+117*I,0+127*I,-49+117*I,-90+90*I,-117+49*I};
+int lutHalfCycleRe[] = {127,117,90,49,0,-49,-90,-117};
+int lutHalfCycleIm[] = {0,49,90,117,127,117,90,49};
 void sampler(int *demodSignal, sampler_mem * str_smp, mem_cic * str)
 {
 	int symbOut,idx;
 	int i,i0,absMovAvg,offset,delayPlusOffset, integerDly, fractDly, delayDiff, delayUnWrap,x;
 	int delay, delayFlt,angMovAvg;
-	int complex freqShftSignal[] = {[0 ... nSymb-1] = 0}, movingAvg, cicSignal;
-	int complex sqrdSignal[] = {[0 ... nSymb-1] = 0};
+	int freqShftSignalRe[] = {[0 ... nSymb-1]=0};
+	int freqShftSignalIm[] = {[0 ... nSymb-1]=0};
+//	int complex freqShftSignal[] = {[0 ... nSymb-1] = 0}, movingAvg, cicSignal;
+	int movingAvgRe, movingAvgIm, cicSignalRe, cicSignalIm;
+//	int complex sqrdSignal[] = {[0 ... nSymb-1] = 0};
+	int sqrdSignalRe[] = {[0 ... nSymb-1]=0};
+	int sqrdSignalIm[] = {[0 ... nSymb-1]=0};
 	int accSymb;
   //apply frequency shift
 	
 	for(i = 0; i<nSymb; i++){		
-		freqShftSignal[i] = str_smp->lutSign*demodSignal[i]*lutHalfCycle[i]*pow(2,-(LUTW-1));
-    freqShftSignal[i] = floor(creal(freqShftSignal[i])) + floor(cimag(freqShftSignal[i]))*I;
+		freqShftSignalRe[i] = (str_smp->lutSign*demodSignal[i]*lutHalfCycleRe[i])>>(LUTW-1);//freqShftSignal[i] = str_smp->lutSign*demodSignal[i]*lutHalfCycle[i]*pow(2,-(LUTW-1));
+                freqShftSignalIm[i] = (str_smp->lutSign*demodSignal[i]*lutHalfCycleIm[i])>>(LUTW-1);
+//                freqShftSignal[i] = floor(creal(freqShftSignal[i])) + floor(cimag(freqShftSignal[i]))*I;
 		//square the signal
-		sqrdSignal[i] = creal(freqShftSignal[i])*creal(freqShftSignal[i])-cimag(freqShftSignal[i])*cimag(freqShftSignal[i])+creal(freqShftSignal[i])*cimag(freqShftSignal[i])*2I;
+//		sqrdSignal[i] = creal(freqShftSignal[i])*creal(freqShftSignal[i])-cimag(freqShftSignal[i])*cimag(freqShftSignal[i])+creal(freqShftSignal[i])*cimag(freqShftSignal[i])*2I;
+		sqrdSignalRe[i] = freqShftSignalRe[i]*freqShftSignalRe[i]-freqShftSignalIm[i]*freqShftSignalIm[i];
+		sqrdSignalIm[i] = 2*freqShftSignalRe[i]*freqShftSignalIm[i];
 	}
   str_smp->lutSign = -str_smp->lutSign;
 	//Moving average
-	cicFilterCplxStep(sqrdSignal, str, &cicSignal, smpDeciRate, smpDelayIdx, nSymb);
-	movingAvg = cicSignal/(avgLen*nSymb);
-  movingAvg = floor(creal(movingAvg))+floor(cimag(movingAvg))*I;
+	cicFilterCplxStep(sqrdSignalRe, sqrdSignalIm, str, &cicSignalRe, &cicSignalIm, smpDeciRate, smpDelayIdx, nSymb);
+	movingAvgRe = cicSignalRe/(avgLen*nSymb);
+	movingAvgIm = cicSignalIm/(avgLen*nSymb);
+      
+//     	movingAvg = floor(creal(movingAvg))+floor(cimag(movingAvg))*I;
+	
 	//Get polar format of complex movingAvg
-	absMovAvg = cabsf(movingAvg);
-	angMovAvg = atan2(cimag(movingAvg),creal(movingAvg))*pow(2,18)/PI;
+	int complex aux = movingAvgRe+movingAvgIm*I;
+	absMovAvg = cabsf(aux);
+//	absMovAvg = movingAvgRe*movingAvgRe+movingAvgIm*movingAvgIm;
+	angMovAvg = atan2(movingAvgIm,movingAvgRe)*pow(2,18)/PI;
   //symbLock histeresys comparator  
 	if(str_smp->symbLock){
-		str_smp->symbLock = absMovAvg>thHoldLow;
+		str_smp->symbLock = absMovAvg>(thHoldLow);
 	} else{
-		str_smp->symbLock = absMovAvg>thHoldHigh;
+		str_smp->symbLock = absMovAvg>(thHoldHigh);
 	}
 	//Calcule time delay in sampler
 	if(str_smp->symbLock){
