@@ -23,7 +23,7 @@ void sampler(int *demodSignal, sampler_mem * str_smp, mem_cic * str)
 	for(i = 0; i<nSymb; i++){		
 		freqShftSignalRe[i] = (str_smp->lutSign*demodSignal[i]*lutHalfCycleRe[i])>>(LUTW-1);//freqShftSignal[i] = str_smp->lutSign*demodSignal[i]*lutHalfCycle[i]*pow(2,-(LUTW-1));
                 freqShftSignalIm[i] = (str_smp->lutSign*demodSignal[i]*lutHalfCycleIm[i])>>(LUTW-1);
-//                freqShftSignal[i] = floor(creal(freqShftSignal[i])) + floor(cimag(freqShftSignal[i]))*I;
+//              freqShftSignal[i] = floor(creal(freqShftSignal[i])) + floor(cimag(freqShftSignal[i]))*I;
 		//square the signal
 //		sqrdSignal[i] = creal(freqShftSignal[i])*creal(freqShftSignal[i])-cimag(freqShftSignal[i])*cimag(freqShftSignal[i])+creal(freqShftSignal[i])*cimag(freqShftSignal[i])*2I;
 		sqrdSignalRe[i] = freqShftSignalRe[i]*freqShftSignalRe[i]-freqShftSignalIm[i]*freqShftSignalIm[i];

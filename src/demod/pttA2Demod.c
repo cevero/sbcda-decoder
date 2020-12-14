@@ -29,6 +29,7 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp
 	int lutAddr;
 	int deciSignalRe, deciSignalIm;
 	int angDeciSignal, theta, piAdd,lpf;
+	int cic_time, sampler_time,cpxMult_time;
 
 	for(iSymb = 0; iSymb<nSymb;iSymb++){
 		p->symbCount++;
@@ -59,6 +60,7 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp
 		*	Complex Multiplier
 		* floor(float)
 		*/		
+		cpxMult_time = rt_time_get_us();
 
 		for (i0=0;i0<smplPerSymb;i0++){
 			cplxMultRe[i0] = (inputBlockRe[i0]*ncoSignalRe[i0]-inputBlockIm[i0]*ncoSignalIm[i0])>>(ncoAmpW-1);//cplxMult[i0] = inputBlock[i0]*ncoSignal[i0];
@@ -66,12 +68,20 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp
 //			((int complex) cplxMult[i0])*pow(2,-(ncoAmpW-1));
 //			cplxMult[i0] = floor(creal(cplxMult[i0]))+floor(cimag(cplxMult[i0]))*I;
 		}
-
+		cpxMult_time = rt_time_get_us()-cpxMult_time;
+		if(iSymb==0){
+//			printf("cpxMult time: %d us\n",cpxMult_time);
+		}
 		/*
 		*	Matched filter and decimation
 		*/
-		cicFilterCplxStep(cplxMultRe,cplxMultIm,str,mfSignalRe,mfSignalIm,deciRate,delayIdx,smplPerSymb);
 
+                cic_time = rt_time_get_us();
+		cicFilterCplxStep(cplxMultRe,cplxMultIm,str,mfSignalRe,mfSignalIm,deciRate,delayIdx,smplPerSymb);
+		cic_time = rt_time_get_us()-cic_time;
+		if(iSymb==0){
+//			printf("cic time: %d us\n",cic_time);
+		}
 		/*
 		*	VGA input mfSignal output demodSignal
 		*/
@@ -84,8 +94,13 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp
 		/*
 		*	Timer recovering SAMPLER
 		*/
-		
+		sampler_time = rt_time_get_us();		
 		sampler(demodSignal, str_smp, str1);
+		sampler_time = rt_time_get_us()-sampler_time;
+		if(iSymb==0){
+//			printf("sampler time: %d us\n",sampler_time);
+		}
+
 		p->symbOut[iSymb] = str_smp->symbOut;
 		p->symbLock[iSymb] = str_smp->symbLock;
 
@@ -103,11 +118,11 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp
 		/*
 		*	PLL Loop Filter
 		*/
-
 		piAdd = kpUInt*theta+(p->lfAcc>>((int)cabs(kpExp-kiExp)));		
 		p->lfAcc +=kiUInt*theta;
 		lpf = piAdd>>((int)cabs(freqW-thetaW-kpExp));
-		p->ncoDFreq = lpf;
+		p->ncoDFreq = lpf;	
+
 	}
 //rt_free(MEM_ALLOC,inputBlock,smplPerSymb*(sizeof(int complex)));
 rt_free(MEM_ALLOC,inputBlockRe,smplPerSymb*(sizeof(int)));

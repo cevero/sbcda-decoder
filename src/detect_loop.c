@@ -82,7 +82,7 @@ void calc_mask(int * mask, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS]
 unsigned int detectLoop(int complex *inputSignal, int * prevIdx, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS])
 {
 
-  int i, n, currIdx = 0;
+  int i, n, currIdx = 0, fft_time;
     /*int lower_limit = 0, upper_limit = 0;*/
   unsigned int ret_value = FREQ_NONE, isInPrevIdx;
   unsigned int peakAmp = 1, currAmp = 0, iPass=0, peakPos, iPrevIdx;
@@ -128,7 +128,10 @@ unsigned int detectLoop(int complex *inputSignal, int * prevIdx, FreqsRecord_Typ
 //  fft_itO(fftSignal,we,DFT_LENGTH);
 //  kiss_fft(cfg,fftSignal,fftOutput);
 //  rt_free(MEM_ALLOC,fftSignal,DFT_LENGTH*sizeof(kiss_fft_cpx));
-  fix_fft(fftSignalRe,fftSignalIm,11,0);
+  fft_time = rt_time_get_us();
+  fix_fft(fftSignalRe,fftSignalIm,LOG2DFT_LENGTH,0);
+  fft_time = rt_time_get_us()-fft_time;
+//  printf("Detect: %d ms\n",fft_time/1000);
   int * mask = rt_alloc(MEM_ALLOC,DFT_LENGTH*sizeof(int));
   for (n = 0; n < DFT_LENGTH; n++)
 	  mask[n]=500;

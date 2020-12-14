@@ -125,7 +125,7 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
    tmp0 =  detectLoop(inputSignal, prevIdx, PTT_DP_LIST);
    
    detect_time = rt_time_get_us()-detect_time;
-   printf("Detect: %d ms\n",detect_time/1000);
+   printf("Detect: %d us\n",detect_time);
    //DEBUG Purpose
    if(tmp0){
      printf("New PTT(s) detected!\nStatus of all decoders:\n");
@@ -184,7 +184,7 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
         pttA2Demod(inputSignal, InitFreq[iCh], vgaMant[iCh], vgaExp[iCh], str_demod[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh]);
 
         demod_time = rt_time_get_us()-demod_time;
-	printf("Demod time: %d ms \n",demod_time/1000);
+//	printf("Demod time: %d us \n",demod_time);
         for(iSymb = 0;iSymb<nSymb;iSymb++){
             if(str_demod[iCh]->symbLock[iSymb]){
 //		    printf("smb %d",str_demod[iCh]->symbOut[i1]);
