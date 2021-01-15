@@ -6,7 +6,7 @@
 #include "../lib/_kiss_fft_guts.h"
 #include "service.h"
 #define NUMBER_OF_SAMPLES 47360 
-
+#define TRIGGER (17)
 static void main_receiver(void *arg)
 {
 rt_freq_set(RT_FREQ_DOMAIN_FC,200000000);
@@ -65,6 +65,20 @@ rt_freq_set(RT_FREQ_DOMAIN_FC,200000000);
   for(i=0;i<DFT_LENGTH;i++){
 	  prevIdx[i]=0;
   }
+
+  //GPIO Setup
+  rt_padframe_profile_t *profile_gpio = rt_pad_profile_get("hyper_gpio");
+  if(profile_gpio == NULL){
+	  printf("pad config error\n");
+//	  return 1;
+  }
+  rt_padframe_set(profile_gpio);
+
+  //GPIO Init
+  rt_gpio_init(0,TRIGGER);
+  //Config TRIGGER pin as an output
+  rt_gpio_set_dir(0,1<<TRIGGER, RT_GPIO_IS_OUT);
+
 //#define DEBUG_DEMOD
   printf("***------------ ALL READY --------------***\n");
   int complex *inputSignal = rt_alloc(MEM_ALLOC,WINDOW_LENGTH*sizeof(int complex));
@@ -120,12 +134,15 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
 
    UpdateTimeout(PTT_DP_LIST,wpckg);
 #ifndef DEBUG_DEMOD
-   detect_time = rt_time_get_us();
+   //detect_time = rt_time_get_us();
+
    printf("Starting detection loop ! %d us\n", detect_time);
+   rt_gpio_set_pin_value(0,TRIGGER,1);
 
    tmp0 =  detectLoop(inputSignal, prevIdx, PTT_DP_LIST);
    
-   detect_time = rt_time_get_us()-detect_time;
+   //detect_time = rt_time_get_us()-detect_time;
+   rt_gpio_set_pin_value(0,TRIGGER,1);
    printf("Detect: %d us\n",detect_time);
    //DEBUG Purpose
    if(tmp0){
