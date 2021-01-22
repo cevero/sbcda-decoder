@@ -3,10 +3,11 @@
 #include "cicFilterCplxStep.h"
 
 //int complex lutHalfCycle[] = {127+0*I,117+49*I,90+90*I,49+117*I,0+127*I,-49+117*I,-90+90*I,-117+49*I};
-int lutHalfCycleRe[] = {127,117,90,49,0,-49,-90,-117};
-int lutHalfCycleIm[] = {0,49,90,117,127,117,90,49};
+
 void sampler(int *demodSignal, sampler_mem * str_smp, mem_cic * str)
 {
+	int lutHalfCycleRe[] = {127,117,90,49,0,-49,-90,-117};
+	int lutHalfCycleIm[] = {0,49,90,117,127,117,90,49};
 	int symbOut,idx;
 	int i,i0,absMovAvg,offset,delayPlusOffset, integerDly, fractDly, delayDiff, delayUnWrap,x;
 	int delay, delayFlt,angMovAvg;

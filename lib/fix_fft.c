@@ -342,7 +342,7 @@ int fix_fft(short fr[], short fi[], short m, short inverse)
     for (m=0; m<l; ++m) {
       j = m << k;
       /* 0 <= j < N_WAVE/2 */
-      wr =  SineW[j+N_WAVE/4];
+      wr = SineW[j+N_WAVE/4];
       wi = -SineW[j];
       if (inverse)
         wi = -wi;

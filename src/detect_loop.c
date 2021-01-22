@@ -141,10 +141,10 @@ unsigned int detectLoop(int complex *inputSignal, int * prevIdx, FreqsRecord_Typ
   // Compare fft amplitude with mask 
   for(i = 0; i<DFT_LENGTH; i++){
 //      fftSignal[i] = fftSignal[i]/(2048);//2048/1.6 keep Vga values
-	abs = (int) (fftSignalRe[i]*fftSignalRe[i]+fftSignalIm[i]*fftSignalIm[i]);
+	abs = (int)(fftSignalRe[i]*fftSignalRe[i]+fftSignalIm[i]*fftSignalIm[i]);
 	abs = abs>>9;//normalize
         if(abs>mask[i]){
-//          printf("[%d]: %d, mask: %d\n", i,aux, mask[i]);
+        //    printf("[%d]: %d, mask: %d\n", i,abs, mask[i]);
             passSet->Idx[nPass] = i;
             passSet->Amp[nPass] =(int) abs;
             nPass++;
