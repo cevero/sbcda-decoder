@@ -76,7 +76,7 @@ cpx KPROD(cpx a, cpx b);
 
 #endif
 
-#define CLUSTER_L1
+//#define CLUSTER_L1
 
 #ifdef CLUSTER_L1
 #define MEM_ALLOC RT_ALLOC_CL_DATA

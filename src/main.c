@@ -179,11 +179,11 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
     for (iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
       if(PTT_DP_LIST[iCh]->detect_state==FREQ_DECODING){
 //      printf("Starting demod process channel %d\n",iCh);
-        demod_time = rt_time_get_us();
-//	decod_per_channel = rt_time_get_us();
+       // demod_time = rt_time_get_us();
+	decod_per_channel = rt_time_get_us();
         pttA2Demod(inputSignal, InitFreq[iCh], vgaMant[iCh], vgaExp[iCh], str_demod[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh]);
 
-        demod_time = rt_time_get_us()-demod_time;
+//        demod_time = rt_time_get_us()-demod_time;
 //	printf("Demod time: %d us \n",demod_time);
         for(iSymb = 0;iSymb<nSymb;iSymb++){
             if(str_demod[iCh]->symbLock[iSymb]){
@@ -195,23 +195,23 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
               readData(wpckg[iCh],str_demod[iCh]->symbOut[iSymb]);
               if(wpckg[iCh]->status==PTT_READY){
                 //fill the package and clear the decoder
-                printf("ready!\n");
+/*                printf("ready!\n");
                 printf("|%d|\n",iCh);
                 for(i2=0;i2<wpckg[iCh]->msgByteLength;i2++){
                   printf("%x\n",wpckg[iCh]->userMsg[i2]);
                 }
-                printf("Clearing decoder %d\n",iCh);
+                printf("Clearing decoder %d\n",iCh);*/
                 clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh], str_demod[iCh]);
                 //DEBUG Purpose                
               }
             }else if(wpckg[iCh]->status==PTT_ERROR){
-              printf("Clearing decoder %d\n",iCh);
+  //            printf("Clearing decoder %d\n",iCh);
               clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh], str_demod[iCh]);
             }
           }
         }
-//     	decod_per_channel= rt_time_get_us()-decod_per_channel;
-//	printf("decod_time %d: %d ms\n",iCh,decod_per_channel/1000);
+     	decod_per_channel= rt_time_get_us()-decod_per_channel;
+	printf("decod_time %d: %d us\n",iCh,decod_per_channel);
       }
     }//END FOR SCROLLING CHANNELS
     
