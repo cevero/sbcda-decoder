@@ -103,16 +103,15 @@ for(i=0;i<DFT_LENGTH/2;i++){//				     -*
 }//-----------------------------------------------------------*
 */
 
-//  kiss_fft_cfg cfg;
-//  cfg = kiss_fft_alloc(DFT_LENGTH,0,NULL,NULL);
 
-//#ifndef DETECT_DEBUG
+
+#ifndef DETECT_DEBUG
   for(iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
    // printf("Clearing decoder %d\n",iCh);
     clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh], str_demod[iCh]);
   }
-//#endif
-/*
+#endif
+
 #ifdef DETECT_DEBUG
  for(iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
 	PTT_DP_LIST[iCh]->detect_state = FREQ_NONE;
@@ -121,7 +120,7 @@ for(i=0;i<DFT_LENGTH/2;i++){//				     -*
 	PTT_DP_LIST[iCh]->timeout = 0;	
  }
 #endif
-*/
+
 #define NSIM (1)
   
 for(n0=0; n0<NSIM;n0++){
@@ -195,7 +194,7 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
 	InitFreq[0] = PTT_DP_LIST[0]->freq_idx<<9;
  //       printf("[%d]: mant %d exp %d\n",0, vgaMant[0],vgaExp[0]);
         wpckg[0]->status=PTT_FRAME_SYNCH;
-	PTT_DP_LIST[1]->detect_state = FREQ_DECODING;
+/*	PTT_DP_LIST[1]->detect_state = FREQ_DECODING;
 	PTT_DP_LIST[1]->freq_amp = 787;
 	PTT_DP_LIST[1]->freq_idx = 397;
 	PTT_DP_LIST[1]->timeout = 100;
@@ -204,11 +203,11 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
 	vgaMant[1] = (vga>>6)&0xFF;
 	InitFreq[1] = PTT_DP_LIST[1]->freq_idx<<9;
         //printf("[%d]: mant %d exp %d\n",0, vgaMant[1],vgaExp[1]);
-        wpckg[1]->status=PTT_FRAME_SYNCH;
+        wpckg[1]->status=PTT_FRAME_SYNCH;*/
     }
 #endif
 
-//#ifndef DETECT_DEBUG
+#ifndef DETECT_DEBUG
     //decodes signals from active channels
     for (iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
       if(PTT_DP_LIST[iCh]->detect_state==FREQ_DECODING){
@@ -251,7 +250,7 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
 //	rt_gpio_set_pin_value(0,TRIGGER,0);
     }//END FOR SCROLLING CHANNELS
   // rt_gpio_set_pin_value(0,TRIGGER,0);
-//#endif
+#endif
 
   }//END FOR SCROLLING WINDOWS  
   
@@ -330,7 +329,7 @@ int main()
 {
 //  rt_event_sched_t * p_sched = rt_event_internal_sched();
   
-  rt_freq_set(RT_FREQ_DOMAIN_FC,200000000);
+  rt_freq_set(RT_FREQ_DOMAIN_FC,250000000);
   printf("Entering main controller \n");
   int t_time = rt_time_get_us();  
 
@@ -343,7 +342,7 @@ int main()
   void *stacks = rt_alloc(MEM_ALLOC, STACK_SIZE/**rt_nb_pe()*/);
   if(stacks == NULL) return -1;
 
-  rt_cluster_call(NULL, CID, cluster_entry, NULL, stacks, STACK_SIZE, 0,1, p_event);
+  rt_cluster_call(NULL, CID, mureceiver, NULL, stacks, STACK_SIZE, 0,1, p_event);
 
   while(!done){
     rt_event_execute(NULL, 1);

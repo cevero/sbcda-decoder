@@ -128,10 +128,9 @@ unsigned int detectLoop(int complex *inputSignal, int * prevIdx, FreqsRecord_Typ
 //  fft_itO(fftSignal,we,DFT_LENGTH);
 //  kiss_fft(cfg,fftSignal,fftOutput);
 //  rt_free(MEM_ALLOC,fftSignal,DFT_LENGTH*sizeof(kiss_fft_cpx));
-  fft_time = rt_time_get_us();
+
   fix_fft(fftSignalRe,fftSignalIm,LOG2DFT_LENGTH,0);
-  fft_time = rt_time_get_us()-fft_time;
-//  printf("Detect: %d ms\n",fft_time/1000);
+
   int * mask = rt_alloc(MEM_ALLOC,DFT_LENGTH*sizeof(int));
   for (n = 0; n < DFT_LENGTH; n++)
 	  mask[n]=500;
