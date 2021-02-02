@@ -5,7 +5,8 @@
 #include "../lib/kiss_fft.h"
 #include "../lib/_kiss_fft_guts.h"
 #include "service.h"
-#define NUMBER_OF_SAMPLES 47360 
+#define NUMBER_OF_SAMPLES 47360
+#define TRIGGER (17)
 int main()
 {
   rt_freq_set(RT_FREQ_DOMAIN_FC,200000000);
