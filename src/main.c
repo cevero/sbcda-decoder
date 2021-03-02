@@ -162,18 +162,12 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
     
 //    rt_gpio_set_pin_value(0,TRIGGER,1);
     
-    /* DEBUG SIGNAL WINDOW
-    if(nWind>30){
-	    printf("0 %d %d\n",inputSignal[0]);
-	    printf("L %d %d\n",inputSignal[WINDOW_LENGTH-1]);
-    }*/
 
    //printf("Updating Timeout !\n");
-
    UpdateTimeout(PTT_DP_LIST,wpckg);
-#ifndef DEBUG_DEMOD
-   //detect_time = rt_time_get_us();
 
+#ifndef DEBUG_DEMOD
+//detect_time = rt_time_get_us();
 //   printf("Starting detection loop ! %d us\n", detect_time);
    tmp0 =  detectLoop(inputSignal, prevIdx, PTT_DP_LIST);   
    //detect_time = rt_time_get_us()-detect_time;
@@ -234,67 +228,8 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
     //decodes signals from active channels
     decoder(inputSignal, PTT_DP_LIST, wpckg, InitFreq, 
       vgaMant, vgaExp, str_demod, str_cic, str_cicSmp, str_smp);
-    /*
-    for (iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
-      if(PTT_DP_LIST[iCh]->detect_state==FREQ_DECODING){
-//      printf("Starting demod process channel %d\n",iCh);
-//      demod_time = rt_time_get_us();
-	decod_per_channel = rt_time_get_us();
-        pttA2Demod(inputSignal, InitFreq[iCh], vgaMant[iCh], vgaExp[iCh], str_demod[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh]);
-
-  //      demod_time = rt_time_get_us()-demod_time;
-//	printf("Demod time: %d ms \n",demod_time/1000);
-        for(iSymb = 0;iSymb<nSymb;iSymb++){
-            if(str_demod[iCh]->symbLock[iSymb]){
-//		    printf("smb %d",str_demod[iCh]->symbOut[i1]);
-            wpckg[iCh]->total_symbol_cnt++;
-            if(wpckg[iCh]->status==PTT_FRAME_SYNCH){
-              frameSynch(wpckg[iCh],str_demod[iCh]->symbOut[iSymb]);   
-            }else if(wpckg[iCh]->status==PTT_DATA){
-              readData(wpckg[iCh],str_demod[iCh]->symbOut[iSymb]);
-              if(wpckg[iCh]->status==PTT_READY){
-		outBuf->carrierFreq = wpckg[iCh]->carrierFreq;
-		outBuf->carrierAbs = wpckg[iCh]->carrierAbs;
-		outBuf->msgByteLength = wpckg[iCh]->msgByteLength;
-
-                //fill the package and clear the decoder
-		printf("ready!\n");
-                printf("|%d|\n",iCh);
-                for(i2=0;i2<wpckg[iCh]->msgByteLength;i2++){               
-	          outBuf->userMsg[i2] = wpckg[iCh]->userMsg[i2];
-		  printf("%x\n",outBuf->userMsg[i2]);
-                }
-                //printf("Clearing decoder %d\n",iCh);
-
-                clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh], str_demod[iCh]);
-                //DEBUG Purpose                
-              }
-            }else if(wpckg[iCh]->status==PTT_ERROR){
-              printf("Clearing decoder %d\n",iCh);
-              clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh], str_demod[iCh]);
-            }
-          }
-        }
-     	decod_per_channel= rt_time_get_us()-decod_per_channel;
-//	printf("decod_time %d: %d us\n",iCh,decod_per_channel/1000);
-      }
-//	rt_gpio_set_pin_value(0,TRIGGER,0);
-    }//END FOR SCROLLING CHANNELS
-    */
-  // rt_gpio_set_pin_value(0,TRIGGER,0);
-#endif
-
-  }//END FOR SCROLLING WINDOWS  
-  
-//  rt_gpio_set_pin_value(0,TRIGGER,0);
-/*  printf("result!\n");
-  printf("|0|\n");
-  for(i2=0;i2<wpckg[0]->msgByteLength;i2++){
-     printf("%x\n",wpckg[0]->userMsg[i2]);
-  }
-*/
-  //total_time = rt_time_get_us()-aux_time;
-  //printf("total time %d\n",total_time/1000);
+#endif 
+  }//END SCROLLING WINDOWS
   }//END FOR NSIM 
   rt_gpio_set_pin_value(0,TRIGGER,0);
 

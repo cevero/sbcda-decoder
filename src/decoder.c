@@ -92,7 +92,7 @@ void decoder(int complex *inputSignal, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_
 		if(PTT_DP_LIST[iCh]->detect_state==FREQ_DECODING){
 //      printf("Starting demod process channel %d\n",iCh);
 //      demod_time = rt_time_get_us();
-			decod_per_channel = rt_time_get_us();
+//			decod_per_channel = rt_time_get_us();
 			pttA2Demod(inputSignal, InitFreq[iCh], vgaMant[iCh], vgaExp[iCh], str_demod[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh]);
 
   //      demod_time = rt_time_get_us()-demod_time;
@@ -106,16 +106,14 @@ void decoder(int complex *inputSignal, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_
 					}else if(wpckg[iCh]->status==PTT_DATA){
 						readData(wpckg[iCh],str_demod[iCh]->symbOut[iSymb]);
 						if(wpckg[iCh]->status==PTT_READY){
-							outBuf->carrierFreq = wpckg[iCh]->carrierFreq;
-							outBuf->carrierAbs = wpckg[iCh]->carrierAbs;
-							outBuf->msgByteLength = wpckg[iCh]->msgByteLength;
-
+						
                 //fill the package and clear the decoder
 							printf("ready!\n");
 							printf("|%d|\n",iCh);
-							for(i2=0;i2<wpckg[iCh]->msgByteLength;i2++){               
-								outBuf->userMsg[i2] = wpckg[iCh]->userMsg[i2];
-								printf("%x\n",outBuf->userMsg[i2]);
+							printf("Freq: %d Abs: %d Length: %d\n",wpckg[iCh]->carrierFreq,
+							 wpckg[iCh]->carrierAbs, wpckg[iCh]->msgByteLength);
+							for(i2=0;i2<wpckg[iCh]->msgByteLength;i2++){
+								printf("%x\n",wpckg[iCh]->userMsg[i2]);
 							}
 							//printf("Clearing decoder %d\n",iCh);
 
@@ -128,7 +126,7 @@ void decoder(int complex *inputSignal, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_
 					}
 				}
 			}
-			decod_per_channel= rt_time_get_us()-decod_per_channel;
+//			decod_per_channel= rt_time_get_us()-decod_per_channel;
 //	printf("decod_time %d: %d us\n",iCh,decod_per_channel/1000);
 		}
 //	rt_gpio_set_pin_value(0,TRIGGER,0);
