@@ -32,4 +32,5 @@ typedef struct {
 	int * symbLock;
 } demod_mem;
 
-void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp, demod_mem * p, mem_cic * str, mem_cic * str1, sampler_mem * str_smp);
+void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp, 
+	demod_mem * p, mem_cic * str, mem_cic * str1, sampler_mem * str_smp);

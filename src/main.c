@@ -232,6 +232,9 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
 
 #ifndef DETECT_DEBUG
     //decodes signals from active channels
+    decoder(inputSignal, PTT_DP_LIST, wpckg, InitFreq, 
+      vgaMant, vgaExp, str_demod, str_cic, str_cicSmp, str_smp);
+    /*
     for (iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
       if(PTT_DP_LIST[iCh]->detect_state==FREQ_DECODING){
 //      printf("Starting demod process channel %d\n",iCh);
@@ -277,6 +280,7 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
       }
 //	rt_gpio_set_pin_value(0,TRIGGER,0);
     }//END FOR SCROLLING CHANNELS
+    */
   // rt_gpio_set_pin_value(0,TRIGGER,0);
 #endif
 
