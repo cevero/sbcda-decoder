@@ -56,28 +56,177 @@ short FIX_MPY(short a, short b)
   return a;
 }
 
+typedef struct reorderArg{
+  short * fr;
+  short * fi;
+}reorderArg_t;
+
+/*
+ *
+ */
+void parallel_reorderData(reorderArg_t * p)
+{
+  short m,l,tr,ti;
+  short n = N_WAVE;
+  //nn will receive my_last to proccesing multicore
+  short  nn = n - 1;
+  short r0_t[] = {1,131,271,423,591,783,1008,1304};
+  short re_t[] = {130,270,422,590,782,1007,1303,1983};
+  short mr_t[] = {0,520,900,812,914,902,1982,1861};
+  
+  short r0 = r0_t[rt_core_id()];
+  short re = re_t[rt_core_id()];
+  short mr = mr_t[rt_core_id()];
+
+  for (m=r0; m<=re; ++m) {
+    l = n;
+    do {
+      l >>= 1;
+    } while (mr+l > nn);
+    mr = (mr & (l-1)) + l;
+
+    if (mr <= m)
+      continue;
+    tr = p->fr[m];
+    p->fr[m] = p->fr[mr];
+    p->fr[mr] = tr;
+    ti = p->fi[m];
+    p->fi[m] = p->fi[mr];
+    p->fi[mr] = ti;
+  }
+}
+
+
+typedef struct BflyArg{
+  short * fr;
+  short * fi;
+  short l;
+  short k;
+  short istep;
+}BflyArg_t;
+
+//(fr,fi,l,k,istep);
+int gBflyStep(BflyArg_t * Arg)
+{
+  short m, wr, wi, tr, ti, qr, qi, j, i, i0, ie;
+  short l = Arg->l;
+  short k = Arg->k;
+  short istep = Arg->istep;
+  m = (rt_core_id()/(rt_nb_pe()/l))&0xf;
+  i0 = l*rt_core_id()*N_WAVE/rt_nb_pe()-((N_WAVE-1)*m);
+  ie = l*(rt_core_id()+1)*N_WAVE/rt_nb_pe()-((N_WAVE)*m);
+  j = m << k;
+
+  //printf("here! %d\n", rt_core_id());
+  // 0 <= j < N_WAVE/2 
+  wr = SineW[j+N_WAVE/4]>>1;
+  wi = -SineW[j]>>1;
+  for (i=i0; i<ie; i+=istep) {
+    j = i + l;
+    tr = FIX_MPY(wr,Arg->fr[j]) - FIX_MPY(wi,Arg->fi[j]);
+    ti = FIX_MPY(wr,Arg->fi[j]) + FIX_MPY(wi,Arg->fr[j]);
+    qr = Arg->fr[i]>>1;
+    qi = Arg->fi[i]>>1;
+    Arg->fr[j] = qr - tr;
+    Arg->fi[j] = qi - ti;
+    Arg->fr[i] = qr + tr;
+    Arg->fi[i] = qi + ti;
+  }
+  rt_team_barrier();
+//  printf("here! %d\n", rt_core_id());
+  return 0;
+}
+
+int gTeamStep(BflyArg_t * Arg)
+{
+  short m, wr, wi, tr, ti, qr, qi, j, i, i0, ie, m0, me;
+  short l = Arg->l;
+  short k = Arg->k;
+  short istep = Arg->istep;
+  m0 = rt_core_id()*(l/rt_nb_pe());
+  me = (rt_core_id()+1)*(l/rt_nb_pe());
+  //printf("here!\n");
+  for (m=m0; m<me; ++m) {
+    j = m << k;
+// 0 <= j < N_WAVE/2 
+    wr = SineW[j+N_WAVE/4]>>1;
+    wi = -SineW[j]>>1;
+    for (i=m; i<N_WAVE; i+=istep) {
+      j = i + l;
+      tr = FIX_MPY(wr,Arg->fr[j]) - FIX_MPY(wi,Arg->fi[j]);
+      ti = FIX_MPY(wr,Arg->fi[j]) + FIX_MPY(wi,Arg->fr[j]);
+      qr = Arg->fr[i]>>1;
+      qi = Arg->fi[i]>>1;
+      Arg->fr[j] = qr - tr;
+      Arg->fi[j] = qi - ti;
+      Arg->fr[i] = qr + tr;
+      Arg->fi[i] = qi + ti;
+    }
+  }
+  rt_team_barrier();
+  return 0;
+}
+
 /*
   fix_fft() - perform forward/inverse fast Fourier transform.
   fr[n],fi[n] are real and imaginary arrays, both INPUT AND
   RESULT (in-place FFT), with 0 <= n < 2**m; set inverse to
   0 for forward transform (FFT), or 1 for iFFT.
 */
-int fix_fft(short fr[], short fi[], short m, short inverse)
-{
-  int mr, nn, i, j, l, k, istep, n, scale, shift;
-  short qr, qi, tr, ti, wr, wi;
 
+int parallel_fix_fft(short fr[], short fi[], short m)
+{
+  int mr, nn, i, j, l, k, istep, n;
+  short qr, qi, tr, ti, wr, wi;
+  
+//  struct BflyArg_t;
+//  printf("Declarating Args to fork\n");
+  BflyArg_t Arg;
+  Arg.fr = fr;
+  Arg.fi = fi;
+  
+  reorderArg_t rArg;
+  rArg.fr = fr;
+  rArg.fi = fi;
+ 
   n = 1 << m;
 
-  /* max FFT size = N_WAVE */
+  // max FFT size = N_WAVE 
   if (n > N_WAVE)
     return -1;
 
-  mr = 0;
-  nn = n - 1;
-  scale = 0;
+  //decimation in time - re-order data 
+  rt_team_fork(rt_nb_pe(),(void *)parallel_reorderData,(void *)&rArg);
+  //reorderData(n,fr,fi);
+  l = 1;
+  k = LOG2_N_WAVE-1;
+  while (l < n) {
+    istep = l << 1;
+    Arg.l = l;
+    Arg.k = k;
+    Arg.istep = istep;
+    if(l<rt_nb_pe()){
+    //rt_team_fork(number_of_cores,function_entry, argument_of_the_function)
+    //number of cores: rt_nb_pe()
+      rt_team_fork(rt_nb_pe(),(void *)gBflyStep,(void *)&Arg);//(fr,fi,l,k,istep);
+    }else{
+      rt_team_fork(rt_nb_pe(),(void *)gTeamStep,(void *)&Arg);//(fr,fi,l,k,istep); 
+    }
+//    rt_team_barrier();
+    --k;
+    l = istep;
+ //   printf("End stage l= %d istep= %d",l,istep);
+  }
+  return 0;
+}
 
-  /* decimation in time - re-order data */
+void reorderData(short n, short fr[], short fi[])
+{
+  short m,l,tr,ti;
+  short mr=0;
+  //nn will receive my_last to proccesing multicore
+  short  nn = n - 1;
+  
   for (m=1; m<=nn; ++m) {
     l = n;
     do {
@@ -94,6 +243,29 @@ int fix_fft(short fr[], short fi[], short m, short inverse)
     fi[m] = fi[mr];
     fi[mr] = ti;
   }
+}
+
+/*
+  fix_fft() - perform forward/inverse fast Fourier transform.
+  fr[n],fi[n] are real and imaginary arrays, both INPUT AND
+  RESULT (in-place FFT), with 0 <= n < 2**m; set inverse to
+  0 for forward transform (FFT), or 1 for iFFT.
+*/
+int fix_fft(short fr[], short fi[], short m, short inverse)
+{
+  int mr, nn, i, j, l, k, istep, n, scale, shift;
+  short qr, qi, tr, ti, wr, wi;
+  
+  n = 1 << m;
+
+  /* max FFT size = N_WAVE */
+  if (n > N_WAVE)
+    return -1;
+  
+  scale = 0;
+
+  /* decimation in time - re-order data */
+  reorderData(n, fr, fi);
 
   l = 1;
   k = LOG2_N_WAVE-1;
@@ -132,7 +304,7 @@ int fix_fft(short fr[], short fi[], short m, short inverse)
     istep = l << 1;
     for (m=0; m<l; ++m) {
       j = m << k;
-      /* 0 <= j < N_WAVE/2 */
+  //  0 <= j < N_WAVE/2 
       wr = SineW[j+N_WAVE/4];
       wi = -SineW[j];
       if (inverse)

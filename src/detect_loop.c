@@ -87,14 +87,6 @@ unsigned int detectLoop(int complex *inputSignal, int * prevIdx, FreqsRecord_Typ
   unsigned int ret_value = FREQ_NONE, isInPrevIdx;
   unsigned int peakAmp = 1, currAmp = 0, iPass=0, peakPos, iPrevIdx;
 
-//int mask;
-//  cpx * fftSignal = rt_alloc(MEM_ALLOC,DFT_LENGTH*sizeof(cpx));
-//  float complex * fftSignal = rt_alloc(MEM_ALLOC,DFT_LENGTH*sizeof(float complex));
-//  float complex * scratch = rt_alloc(MEM_ALLOC,DFT_LENGTH*sizeof(float complex));
-//  int fftSignal;
-
-//  kiss_fft_cpx *fftSignal = rt_alloc(MEM_ALLOC,DFT_LENGTH*sizeof(kiss_fft_cpx));
-//  kiss_fft_cpx *fftOutput = rt_alloc(MEM_ALLOC,DFT_LENGTH*sizeof(kiss_fft_cpx));
   short * fftSignalRe = rt_alloc(MEM_ALLOC,DFT_LENGTH*sizeof(short));
   short * fftSignalIm = rt_alloc(MEM_ALLOC,DFT_LENGTH*sizeof(short));
 
@@ -124,12 +116,9 @@ unsigned int detectLoop(int complex *inputSignal, int * prevIdx, FreqsRecord_Typ
     }
   }
 
-//  fft(scratch,fftSignal,DFT_LENGTH);
-//  fft_itO(fftSignal,we,DFT_LENGTH);
-//  kiss_fft(cfg,fftSignal,fftOutput);
-//  rt_free(MEM_ALLOC,fftSignal,DFT_LENGTH*sizeof(kiss_fft_cpx));
-
-  fix_fft(fftSignalRe,fftSignalIm,LOG2DFT_LENGTH,0);
+//  fix_fft(fftSignalRe,fftSignalIm,LOG2DFT_LENGTH,0);
+//  printf("Starting parallel FFT\n");
+  parallel_fix_fft(fftSignalRe,fftSignalIm,LOG2DFT_LENGTH);
 
   int * mask = rt_alloc(MEM_ALLOC,DFT_LENGTH*sizeof(int));
   for (n = 0; n < DFT_LENGTH; n++)
@@ -150,8 +139,6 @@ unsigned int detectLoop(int complex *inputSignal, int * prevIdx, FreqsRecord_Typ
       }
   }
   //	printf("nPass: %d\n",nPass);
-  // rt_free(MEM_ALLOC,fftOutput,DFT_LENGTH*sizeof(kiss_fft_cpx));
-    
   rt_free(MEM_ALLOC,fftSignalRe,DFT_LENGTH*sizeof(short));
   rt_free(MEM_ALLOC,fftSignalIm,DFT_LENGTH*sizeof(short));
 
@@ -214,7 +201,6 @@ unsigned int detectLoop(int complex *inputSignal, int * prevIdx, FreqsRecord_Typ
     prevIdx[passSet->Idx[iPass]]=1;
   }
  
-//  rt_free(MEM_ALLOC,fftSignal,DFT_LENGTH*sizeof(cpx));
   rt_free(MEM_ALLOC,passSet,sizeof(PassSet_Typedef));
   rt_free(MEM_ALLOC,mask,DFT_LENGTH*sizeof(int));
   return ret_value;

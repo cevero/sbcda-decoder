@@ -10,7 +10,27 @@
 
 //#define DETECT_DEBUG
 //#define DEBUG_DEMOD
-static void mureceiver(void *arg)
+typedef struct OutputBuffer{
+	short carrierFreq;
+	short carrierAbs;
+	short msgByteLength;
+	short userMsg[35];
+}OutputBuffer_t;
+
+//inputSignal, InitFreq[iCh], vgaMant[iCh], vgaExp[iCh], str_demod[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh]
+
+typedef struct demodArg{
+	int complex * signal;
+	int initFreq[NUMBER_OF_DECODERS];
+	int vgaMant[NUMBER_OF_DECODERS];
+	int vgaExp[NUMBER_OF_DECODERS];
+	demod_mem str_demod[NUMBER_OF_DECODERS];
+	mem_cic * str_cic[NUMBER_OF_DECODERS];
+	mem_cic * str_cicSmp[NUMBER_OF_DECODERS];
+	sampler_mem * str_smp[NUMBER_OF_DECODERS];
+}demodArg_t;
+
+static void mureceiver(OutputBuffer_t * outBuf)
 {
   //GPIO Setup
   rt_padframe_profile_t *profile_gpio = rt_pad_profile_get("hyper_gpio");
@@ -168,7 +188,7 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
      tmp0=0;
    }
     //Setup Parameters: Frequency, Gain, Controls status of pckg and Detect.
-    for (iCh=0;iCh<1;iCh++){
+    for (iCh=0;iCh<2;iCh++){
       if(PTT_DP_LIST[iCh]->detect_state==FREQ_DETECTED_TWICE){
         vga = VgaGain(PTT_DP_LIST[iCh]->freq_amp);
         vgaExp[iCh] = -1*(vga&0x3F);
@@ -177,6 +197,9 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
 //       printf("[%d]: mant %d exp %d freq %d\n",iCh, vgaMant[iCh],vgaExp[iCh],PTT_DP_LIST[iCh]->freq_idx);
         PTT_DP_LIST[iCh]->detect_state=FREQ_DECODING;
         wpckg[iCh]->status=PTT_FRAME_SYNCH;
+        wpckg[iCh]->carrierFreq=PTT_DP_LIST[iCh]->freq_idx;
+        wpckg[iCh]->carrierAbs=PTT_DP_LIST[iCh]->freq_amp;
+//	printf("%d %d \n", wpckg[iCh]->carrierFreq,wpckg[iCh]->carrierAbs);
       }
     }
 #endif
@@ -227,14 +250,19 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
             }else if(wpckg[iCh]->status==PTT_DATA){
               readData(wpckg[iCh],str_demod[iCh]->symbOut[iSymb]);
               if(wpckg[iCh]->status==PTT_READY){
+		outBuf->carrierFreq = wpckg[iCh]->carrierFreq;
+		outBuf->carrierAbs = wpckg[iCh]->carrierAbs;
+		outBuf->msgByteLength = wpckg[iCh]->msgByteLength;
+
                 //fill the package and clear the decoder
-/*		printf("ready!\n");
+		printf("ready!\n");
                 printf("|%d|\n",iCh);
-                for(i2=0;i2<wpckg[iCh]->msgByteLength;i2++){
-                  printf("%x\n",wpckg[iCh]->userMsg[i2]);
+                for(i2=0;i2<wpckg[iCh]->msgByteLength;i2++){               
+	          outBuf->userMsg[i2] = wpckg[iCh]->userMsg[i2];
+		  printf("%x\n",outBuf->userMsg[i2]);
                 }
-                printf("Clearing decoder %d\n",iCh);
-*/
+                //printf("Clearing decoder %d\n",iCh);
+
                 clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh], str_demod[iCh]);
                 //DEBUG Purpose                
               }
@@ -295,7 +323,7 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
 
 }
 
-#define STACK_SIZE	4000
+#define STACK_SIZE	2048
 #define MOUNT           1
 #define UNMOUNT         0
 #define CID             0
@@ -306,43 +334,39 @@ static void hello(void *arg)
   printf("[clusterID: 0x%2x] Hello from core %d\n", rt_cluster_id(), rt_core_id());
 }
 
-static void free_mem(void* p, int size, rt_free_req_t* req)
-{
-rt_free_cluster(MEM_ALLOC, p, alloc_size, req);
-rt_free_cluster_wait(req);
-}
 static void cluster_entry(void *arg)
 {
- // printf("Entering cluster on core %d\n", rt_core_id());
- // printf("There are %d cores available here.\n", rt_nb_pe());
-  rt_team_fork(1, mureceiver, (void *)0x0);
- // printf("Leaving cluster on core %d\n", rt_core_id());
+  printf("Entering cluster on core %d\n", rt_core_id());
+  printf("There are %d cores available here.\n", rt_nb_pe());
+  rt_team_fork(8, hello, (void *)0x0);
+  printf("Leaving cluster on core %d\n", rt_core_id());
 }
 
 static void end_of_call(void *arg)
 {
-//  printf("[clusterID: 0x%x] MUR from core %d\n", rt_cluster_id(), rt_core_id());
+ // printf("[clusterID: 0x%x] MUR from core %d\n", rt_cluster_id(), rt_core_id());
   done = 1;
 }
 
 int main()
 {
 //  rt_event_sched_t * p_sched = rt_event_internal_sched();
-  
+  OutputBuffer_t outBuf;
   rt_freq_set(RT_FREQ_DOMAIN_FC,250000000);
   printf("Entering main controller \n");
   int t_time = rt_time_get_us();  
 
-  if (rt_event_alloc(NULL, 8)) return -1;
+  if (rt_event_alloc(NULL, 4)) return -1;
 
   rt_event_t *p_event = rt_event_get(NULL, end_of_call, (void *) CID);
 
   rt_cluster_mount(MOUNT, CID, 0, NULL);
 
-  void *stacks = rt_alloc(MEM_ALLOC, STACK_SIZE/**rt_nb_pe()*/);
+  void *stacks = rt_alloc(MEM_ALLOC, STACK_SIZE);
   if(stacks == NULL) return -1;
-
-  rt_cluster_call(NULL, CID, mureceiver, NULL, stacks, STACK_SIZE, 0,1, p_event);
+//rt_cluster_call(NULL, CID, entry, entry_args, stacks, master_stack_size, slave_stack_size, nb_cores, event)
+  rt_cluster_call(NULL, CID, (void *)mureceiver, (void *)&outBuf, stacks, STACK_SIZE, STACK_SIZE,8, p_event);
+//  rt_cluster_call(NULL, CID, cluster_entry, NULL, stacks, STACK_SIZE>>1, STACK_SIZE>>1,rt_nb_pe(), p_event);
 
   while(!done){
     rt_event_execute(NULL, 1);
@@ -350,7 +374,13 @@ int main()
 
   rt_cluster_mount(UNMOUNT, CID, 0, NULL);
   t_time = rt_time_get_us()-t_time;
-  printf("total time: %d ms\n",t_time/1000);
+  printf("total time: %d.%d ms\n",t_time/1000,(t_time-((t_time/1000)*1000))/10);
+/*  printf("|%d|\n",iCh);
+//  printf("freq_idx: %d\namp: %d \nmsgLength: %d\n",outBuf.carrierFreq,outBuf.carrierAbs,outBuf.msgByteLength);
+  for(int i0=0;i0<outBuf.msgByteLength;i0++){
+    printf("%x\n",outBuf.userMsg[i0]);
+  }
+*/
 
   printf("Test success: Leaving main controller\n");
   return 0;
