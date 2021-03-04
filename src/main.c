@@ -18,18 +18,6 @@ typedef struct OutputBuffer{
 }OutputBuffer_t;
 
 //inputSignal, InitFreq[iCh], vgaMant[iCh], vgaExp[iCh], str_demod[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh]
-
-typedef struct demodArg{
-	int complex * signal;
-	int initFreq[NUMBER_OF_DECODERS];
-	int vgaMant[NUMBER_OF_DECODERS];
-	int vgaExp[NUMBER_OF_DECODERS];
-	demod_mem str_demod[NUMBER_OF_DECODERS];
-	mem_cic * str_cic[NUMBER_OF_DECODERS];
-	mem_cic * str_cicSmp[NUMBER_OF_DECODERS];
-	sampler_mem * str_smp[NUMBER_OF_DECODERS];
-}demodArg_t;
-
 static void mureceiver(OutputBuffer_t * outBuf)
 {
   //GPIO Setup
@@ -55,35 +43,35 @@ static void mureceiver(OutputBuffer_t * outBuf)
    
   //sampler memory
   int i;
-  
-  sampler_mem * str_smp[NUMBER_OF_DECODERS];
+  demodArg_t * d_ptr = rt_alloc(MEM_ALLOC, sizeof(demodArg_t));
+  //sampler_mem * str_smp[NUMBER_OF_DECODERS];
   for (i = 0; i < NUMBER_OF_DECODERS; ++i){
-    str_smp[i] = rt_alloc(MEM_ALLOC,sizeof(sampler_mem));
-    str_smp[i]->smplBuffer = rt_alloc(MEM_ALLOC,2*smplPerSymb*(sizeof(int)));
+    d_ptr->str_smp[i] = rt_alloc(MEM_ALLOC,sizeof(sampler_mem));
+    d_ptr->str_smp[i]->smplBuffer = rt_alloc(MEM_ALLOC,2*smplPerSymb*(sizeof(int)));
   }
 
   //CIC filter of demod
-  mem_cic * str_cic[NUMBER_OF_DECODERS];
+  //mem_cic * str_cic[NUMBER_OF_DECODERS];
   for (i = 0; i < NUMBER_OF_DECODERS; ++i){
-    str_cic[i] = rt_alloc(MEM_ALLOC,sizeof(mem_cic));
-    str_cic[i]->previousAccRe = rt_alloc(MEM_ALLOC,delayIdx*sizeof(int));
-    str_cic[i]->previousAccIm = rt_alloc(MEM_ALLOC,delayIdx*sizeof(int));
+    d_ptr->str_cic[i] = rt_alloc(MEM_ALLOC,sizeof(mem_cic));
+    d_ptr->str_cic[i]->previousAccRe = rt_alloc(MEM_ALLOC,delayIdx*sizeof(int));
+    d_ptr->str_cic[i]->previousAccIm = rt_alloc(MEM_ALLOC,delayIdx*sizeof(int));
   }
   
   //CIC filter of sampler
-  mem_cic * str_cicSmp[NUMBER_OF_DECODERS];
+  //mem_cic * str_cicSmp[NUMBER_OF_DECODERS];
   for (i = 0; i < NUMBER_OF_DECODERS; ++i){
-    str_cicSmp[i]= rt_alloc(MEM_ALLOC,sizeof(mem_cic));
-    str_cicSmp[i]->previousAccRe = rt_alloc(MEM_ALLOC,delaySmp*sizeof(int));
-    str_cicSmp[i]->previousAccIm = rt_alloc(MEM_ALLOC,delaySmp*sizeof(int));
+    d_ptr->str_cicSmp[i]= rt_alloc(MEM_ALLOC,sizeof(mem_cic));
+    d_ptr->str_cicSmp[i]->previousAccRe = rt_alloc(MEM_ALLOC,delaySmp*sizeof(int));
+    d_ptr->str_cicSmp[i]->previousAccIm = rt_alloc(MEM_ALLOC,delaySmp*sizeof(int));
   }
 
   //demod_mem stores accumulators, symbOut and symbLock
-  demod_mem * str_demod[NUMBER_OF_DECODERS];
+  //demod_mem * str_demod[NUMBER_OF_DECODERS];
   for(i=0;i<NUMBER_OF_DECODERS;i++){
-    str_demod[i] = rt_alloc(MEM_ALLOC,sizeof(demod_mem));
-    str_demod[i]->symbLock = rt_alloc(MEM_ALLOC,nSymb*sizeof(int));
-    str_demod[i]->symbOut = rt_alloc(MEM_ALLOC,nSymb*sizeof(int));
+    d_ptr->str_demod[i] = rt_alloc(MEM_ALLOC,sizeof(demod_mem));
+    d_ptr->str_demod[i]->symbLock = rt_alloc(MEM_ALLOC,nSymb*sizeof(int));
+    d_ptr->str_demod[i]->symbOut = rt_alloc(MEM_ALLOC,nSymb*sizeof(int));
   }
 
   // This struct is used to control the FSM and show bit results
@@ -104,11 +92,12 @@ static void mureceiver(OutputBuffer_t * outBuf)
   }
 
 //  printf("***------------ ALL READY --------------***\n");
-  int complex *inputSignal = rt_alloc(MEM_ALLOC,WINDOW_LENGTH*sizeof(int complex));
-  int tmp0=0,f=0,iCh,vga, activeList, nWind, spWind,iSymb,i0,i2;
-  int * vgaExp = rt_alloc(MEM_ALLOC,NUMBER_OF_DECODERS*sizeof(int));
-  int * vgaMant = rt_alloc(MEM_ALLOC,NUMBER_OF_DECODERS*sizeof(int));
-  int * InitFreq = rt_alloc(MEM_ALLOC,NUMBER_OF_DECODERS*sizeof(int));
+  d_ptr->inputSignal = rt_alloc(MEM_ALLOC,WINDOW_LENGTH*sizeof(int complex));
+  int tmp0,f=0,iCh,vga, activeList, nWind, spWind,iSymb,i0,i2;
+  d_ptr->vgaExp = rt_alloc(MEM_ALLOC,NUMBER_OF_DECODERS*sizeof(int));
+  d_ptr->vgaMant = rt_alloc(MEM_ALLOC,NUMBER_OF_DECODERS*sizeof(int));
+  d_ptr->InitFreq = rt_alloc(MEM_ALLOC,NUMBER_OF_DECODERS*sizeof(int));
+  d_ptr->activeList = 0;
   int detect_time=0, demod_time=0, decod_time=0, total_time=0,aux_time, decod_per_channel=0;
 #ifdef DEBUG_DEMOD
   int debug = 0;
@@ -122,13 +111,10 @@ for(i=0;i<DFT_LENGTH/2;i++){//				     -*
 	we[i].i=-1*(sin(2*PI*i/DFT_LENGTH));//               -*
 }//-----------------------------------------------------------*
 */
-
-
-
 #ifndef DETECT_DEBUG
   for(iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
    // printf("Clearing decoder %d\n",iCh);
-    clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh], str_demod[iCh]);
+    clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], d_ptr->str_cic[iCh], d_ptr->str_cicSmp[iCh], d_ptr->str_smp[iCh], d_ptr->str_demod[iCh]);
   }
 #endif
 
@@ -150,18 +136,14 @@ for(n0=0; n0<NSIM;n0++){
    debug = 1;
 #endif
 
-
-
-for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
+  for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
 //  aux_time = rt_time_get_us();
 //  for (nWind=0;nWind<2;nWind++){ //DEBUG DETECT PROCESS
-    //printf("***--------- Window processing ---------*** [%d]\n", nWind);
-    
+    //printf("***--------- Window processing ---------*** [%d]\n", nWind);  
     // Performs input partitioning on the windows of 1280 samples
-    memcpy(inputSignal,inputSignalMin+WINDOW_LENGTH*nWind,1280*sizeof(int complex));
+    memcpy(d_ptr->inputSignal,inputSignalMin+WINDOW_LENGTH*nWind,1280*sizeof(int complex));
     
 //    rt_gpio_set_pin_value(0,TRIGGER,1);
-    
 
    //printf("Updating Timeout !\n");
    UpdateTimeout(PTT_DP_LIST,wpckg);
@@ -169,30 +151,24 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
 #ifndef DEBUG_DEMOD
 //detect_time = rt_time_get_us();
 //   printf("Starting detection loop ! %d us\n", detect_time);
-   tmp0 =  detectLoop(inputSignal, prevIdx, PTT_DP_LIST);   
+   tmp0 =  detectLoop(d_ptr->inputSignal, prevIdx, PTT_DP_LIST);   
    //detect_time = rt_time_get_us()-detect_time;
   //  rt_gpio_set_pin_value(0,TRIGGER,0);
   // printf("Detect: %d us\n",detect_time);
-   //DEBUG Purpose
-   if(tmp0){
-   //  printf("New PTT(s) detected!\nStatus of all decoders:\n");
-     for(iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
-   //    printf("ch:%d state: %d freq: %4d amp: %4d\n",iCh,PTT_DP_LIST[iCh]->detect_state, PTT_DP_LIST[iCh]->freq_idx, PTT_DP_LIST[iCh]->freq_amp);
-     }
-     tmp0=0;
-   }
+
     //Setup Parameters: Frequency, Gain, Controls status of pckg and Detect.
     for (iCh=0;iCh<2;iCh++){
       if(PTT_DP_LIST[iCh]->detect_state==FREQ_DETECTED_TWICE){
         vga = VgaGain(PTT_DP_LIST[iCh]->freq_amp);
-        vgaExp[iCh] = -1*(vga&0x3F);
-        vgaMant[iCh] = (vga>>6)&0xFF;
-        InitFreq[iCh] = PTT_DP_LIST[iCh]->freq_idx<<9;
+        d_ptr->vgaExp[iCh] = -1*(vga&0x3F);
+        d_ptr->vgaMant[iCh] = (vga>>6)&0xFF;
+        d_ptr->InitFreq[iCh] = PTT_DP_LIST[iCh]->freq_idx<<9;
 //       printf("[%d]: mant %d exp %d freq %d\n",iCh, vgaMant[iCh],vgaExp[iCh],PTT_DP_LIST[iCh]->freq_idx);
         PTT_DP_LIST[iCh]->detect_state=FREQ_DECODING;
         wpckg[iCh]->status=PTT_FRAME_SYNCH;
         wpckg[iCh]->carrierFreq=PTT_DP_LIST[iCh]->freq_idx;
         wpckg[iCh]->carrierAbs=PTT_DP_LIST[iCh]->freq_amp;
+	d_ptr->activeList++;
 //	printf("%d %d \n", wpckg[iCh]->carrierFreq,wpckg[iCh]->carrierAbs);
       }
     }
@@ -226,35 +202,35 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
 
 #ifndef DETECT_DEBUG
     //decodes signals from active channels
-    decoder(inputSignal, PTT_DP_LIST, wpckg, InitFreq, 
-      vgaMant, vgaExp, str_demod, str_cic, str_cicSmp, str_smp);
+//	decoder(d_ptr->inputSignal, PTT_DP_LIST, wpckg, d_ptr->InitFreq, d_ptr->vgaMant, d_ptr->vgaExp, d_ptr->str_demod, d_ptr->str_cic, d_ptr->str_cicSmp, d_ptr->str_smp);
+    decoder(d_ptr, PTT_DP_LIST, wpckg);
 #endif 
   }//END SCROLLING WINDOWS
   }//END FOR NSIM 
   rt_gpio_set_pin_value(0,TRIGGER,0);
 
   rt_free(MEM_ALLOC,prevIdx,DFT_LENGTH*sizeof(int));
-  rt_free(MEM_ALLOC,inputSignal,WINDOW_LENGTH*sizeof(int complex));
-  rt_free(MEM_ALLOC,vgaExp,NUMBER_OF_DECODERS*sizeof(int));
-  rt_free(MEM_ALLOC,vgaMant,NUMBER_OF_DECODERS*sizeof(int));
-  rt_free(MEM_ALLOC,InitFreq,NUMBER_OF_DECODERS*sizeof(int));
+  rt_free(MEM_ALLOC,d_ptr->inputSignal,WINDOW_LENGTH*sizeof(int complex));
+  rt_free(MEM_ALLOC,d_ptr->vgaExp,NUMBER_OF_DECODERS*sizeof(int));
+  rt_free(MEM_ALLOC,d_ptr->vgaMant,NUMBER_OF_DECODERS*sizeof(int));
+  rt_free(MEM_ALLOC,d_ptr->InitFreq,NUMBER_OF_DECODERS*sizeof(int));
   
   for(i=0;i<NUMBER_OF_DECODERS;i++){
     rt_free(MEM_ALLOC,PTT_DP_LIST[i],sizeof(FreqsRecord_Typedef));
     rt_free(MEM_ALLOC,wpckg[i],sizeof(PTTPackage_Typedef));
     
 #ifndef DETECT_DEBUG
-    rt_free(MEM_ALLOC,str_smp[i]->smplBuffer,2*smplPerSymb*(sizeof(int)));   
-    rt_free(MEM_ALLOC,str_smp[i],sizeof(sampler_mem));       
-    rt_free(MEM_ALLOC,str_cicSmp[i]->previousAccRe,delaySmp*sizeof(int));
-    rt_free(MEM_ALLOC,str_cicSmp[i]->previousAccIm,delaySmp*sizeof(int));
-    rt_free(MEM_ALLOC,str_cicSmp[i],sizeof(mem_cic));
-    rt_free(MEM_ALLOC,str_cic[i]->previousAccRe,delayIdx*sizeof(int));
-    rt_free(MEM_ALLOC,str_cic[i]->previousAccIm,delayIdx*sizeof(int));
-    rt_free(MEM_ALLOC,str_cic[i],sizeof(mem_cic));        
-    rt_free(MEM_ALLOC,str_demod[i]->symbLock,nSymb*sizeof(int));
-    rt_free(MEM_ALLOC,str_demod[i]->symbOut,nSymb*sizeof(int));
-    rt_free(MEM_ALLOC,str_demod[i],sizeof(demod_mem));    
+    rt_free(MEM_ALLOC,d_ptr->str_smp[i]->smplBuffer,2*smplPerSymb*(sizeof(int)));   
+    rt_free(MEM_ALLOC,d_ptr->str_smp[i],sizeof(sampler_mem));       
+    rt_free(MEM_ALLOC,d_ptr->str_cicSmp[i]->previousAccRe,delaySmp*sizeof(int));
+    rt_free(MEM_ALLOC,d_ptr->str_cicSmp[i]->previousAccIm,delaySmp*sizeof(int));
+    rt_free(MEM_ALLOC,d_ptr->str_cicSmp[i],sizeof(mem_cic));
+    rt_free(MEM_ALLOC,d_ptr->str_cic[i]->previousAccRe,delayIdx*sizeof(int));
+    rt_free(MEM_ALLOC,d_ptr->str_cic[i]->previousAccIm,delayIdx*sizeof(int));
+    rt_free(MEM_ALLOC,d_ptr->str_cic[i],sizeof(mem_cic));        
+    rt_free(MEM_ALLOC,d_ptr->str_demod[i]->symbLock,nSymb*sizeof(int));
+    rt_free(MEM_ALLOC,d_ptr->str_demod[i]->symbOut,nSymb*sizeof(int));
+    rt_free(MEM_ALLOC,d_ptr->str_demod[i],sizeof(demod_mem));    
 #endif
   }
 
@@ -262,7 +238,7 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
 
 }
 
-#define STACK_SIZE	2048
+#define STACK_SIZE	4000
 #define MOUNT           1
 #define UNMOUNT         0
 #define CID             0
@@ -304,7 +280,7 @@ int main()
   void *stacks = rt_alloc(MEM_ALLOC, STACK_SIZE);
   if(stacks == NULL) return -1;
 //rt_cluster_call(NULL, CID, entry, entry_args, stacks, master_stack_size, slave_stack_size, nb_cores, event)
-  rt_cluster_call(NULL, CID, (void *)mureceiver, (void *)&outBuf, stacks, STACK_SIZE, STACK_SIZE,8, p_event);
+  rt_cluster_call(NULL, CID, (void *)mureceiver, (void *)&outBuf, stacks, STACK_SIZE>>1, STACK_SIZE,8, p_event);
 //  rt_cluster_call(NULL, CID, cluster_entry, NULL, stacks, STACK_SIZE>>1, STACK_SIZE>>1,rt_nb_pe(), p_event);
 
   while(!done){

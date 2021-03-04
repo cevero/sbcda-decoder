@@ -77,52 +77,52 @@ void UpdateTimeout(FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS], PTTPac
 	}
 }
 
-void decoder(int complex *inputSignal, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS], 
-	PTTPackage_Typedef * wpckg[NUMBER_OF_DECODERS], int InitFreq[NUMBER_OF_DECODERS], 
-	int vgaMant[NUMBER_OF_DECODERS], int vgaExp[NUMBER_OF_DECODERS], 
-	demod_mem * str_demod[NUMBER_OF_DECODERS], 
-	mem_cic * str_cic[NUMBER_OF_DECODERS], 
-	mem_cic * str_cicSmp[NUMBER_OF_DECODERS], 
-	sampler_mem * str_smp[NUMBER_OF_DECODERS])
+//void decoder(int complex *inputSignal, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS], PTTPackage_Typedef * wpckg[NUMBER_OF_DECODERS], int * InitFreq, int * vgaMant, int * vgaExp, demod_mem * str_demod[NUMBER_OF_DECODERS], mem_cic * str_cic[NUMBER_OF_DECODERS], mem_cic * str_cicSmp[NUMBER_OF_DECODERS], sampler_mem * str_smp[NUMBER_OF_DECODERS])
+void decoder(demodArg_t * ptr, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS], PTTPackage_Typedef * wpckg[NUMBER_OF_DECODERS])
 {
-	
+
 	int iCh,i2,iSymb;
-	
+if(ptr->activeList>0){
+//	printf("activeList: %d\n",ptr->activeList);
+	rt_team_fork(1, (void * ) pttA2Demod, (void *) ptr);
+}
 	for (iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
 		if(PTT_DP_LIST[iCh]->detect_state==FREQ_DECODING){
 //      printf("Starting demod process channel %d\n",iCh);
 //      demod_time = rt_time_get_us();
 //			decod_per_channel = rt_time_get_us();
-			pttA2Demod(inputSignal, InitFreq[iCh], vgaMant[iCh], vgaExp[iCh], str_demod[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh]);
+			//pttA2Demod(ptr->inputSignal, ptr->InitFreq[iCh], ptr->vgaMant[iCh], ptr->vgaExp[iCh], ptr->str_demod[iCh], ptr->str_cic[iCh], ptr->str_cicSmp[iCh], ptr->str_smp[iCh]);
 
   //      demod_time = rt_time_get_us()-demod_time;
 //	printf("Demod time: %d ms \n",demod_time/1000);
 			for(iSymb = 0;iSymb<nSymb;iSymb++){
-				if(str_demod[iCh]->symbLock[iSymb]){
+				if(ptr->str_demod[iCh]->symbLock[iSymb]){
 //		    printf("smb %d",str_demod[iCh]->symbOut[i1]);
 					wpckg[iCh]->total_symbol_cnt++;
 					if(wpckg[iCh]->status==PTT_FRAME_SYNCH){
-						frameSynch(wpckg[iCh],str_demod[iCh]->symbOut[iSymb]);   
+						frameSynch(wpckg[iCh],ptr->str_demod[iCh]->symbOut[iSymb]);   
 					}else if(wpckg[iCh]->status==PTT_DATA){
-						readData(wpckg[iCh],str_demod[iCh]->symbOut[iSymb]);
+						readData(wpckg[iCh],ptr->str_demod[iCh]->symbOut[iSymb]);
 						if(wpckg[iCh]->status==PTT_READY){
 						
                 //fill the package and clear the decoder
-							printf("ready!\n");
-							printf("|%d|\n",iCh);
-							printf("Freq: %d Abs: %d Length: %d\n",wpckg[iCh]->carrierFreq,
-							 wpckg[iCh]->carrierAbs, wpckg[iCh]->msgByteLength);
+//							printf("ready!\n");
+//							printf("|%d|\n",iCh);
+//							printf("Freq: %d Abs: %d Length: %d\n",wpckg[iCh]->carrierFreqi,wpckg[iCh]->carrierAbs, wpckg[iCh]->msgByteLength);
 							for(i2=0;i2<wpckg[iCh]->msgByteLength;i2++){
-								printf("%x\n",wpckg[iCh]->userMsg[i2]);
+//								printf("%x\n",wpckg[iCh]->userMsg[i2]);
 							}
 							//printf("Clearing decoder %d\n",iCh);
-
-							clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh], str_demod[iCh]);
+//							clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh], str_demod[iCh]);
+							clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], ptr->str_cic[iCh], ptr->str_cicSmp[iCh], ptr->str_smp[iCh], ptr->str_demod[iCh]);
+							ptr->activeList--;
                 //DEBUG Purpose                
 						}
 					}else if(wpckg[iCh]->status==PTT_ERROR){
 						printf("Clearing decoder %d\n",iCh);
-						clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh], str_demod[iCh]);
+						//clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh], str_demod[iCh]);
+						clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], ptr->str_cic[iCh], ptr->str_cicSmp[iCh], ptr->str_smp[iCh], ptr->str_demod[iCh]);
+						ptr->activeList--;
 					}
 				}
 			}

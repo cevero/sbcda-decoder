@@ -13,10 +13,5 @@ void clearDecoder(FreqsRecord_Typedef * PTT_DP_LIST,PTTPackage_Typedef * wpckg, 
 void UpdateTimeout(FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS], 
 	PTTPackage_Typedef * wpckg[NUMBER_OF_DECODERS]);
 
-void decoder(int complex *inputSignal, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS], 
-	PTTPackage_Typedef * wpckg[NUMBER_OF_DECODERS], int InitFreq[NUMBER_OF_DECODERS], 
-	int vgaMant[NUMBER_OF_DECODERS], int vgaExp[NUMBER_OF_DECODERS], 
-	demod_mem * str_demod[NUMBER_OF_DECODERS], 
-	mem_cic * str_cic[NUMBER_OF_DECODERS], 
-	mem_cic * str_cicSmp[NUMBER_OF_DECODERS], 
-	sampler_mem * str_smp[NUMBER_OF_DECODERS]);
+//void decoder(int complex *inputSignal, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS], PTTPackage_Typedef * wpckg[NUMBER_OF_DECODERS], int * InitFreq, int * vgaMant, int * vgaExp, demod_mem * str_demod[NUMBER_OF_DECODERS], mem_cic * str_cic[NUMBER_OF_DECODERS], mem_cic * str_cicSmp[NUMBER_OF_DECODERS], sampler_mem * str_smp[NUMBER_OF_DECODERS]);
+void decoder(demodArg_t * ptr, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS], PTTPackage_Typedef * wpckg[NUMBER_OF_DECODERS]);

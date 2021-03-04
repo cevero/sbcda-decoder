@@ -19,8 +19,10 @@
 #define kpExp (17)//exponential proportional gain of Loop Filter
 #define kiUInt (182)//mantissa integrative gain of Loop Filter
 #define kiExp (22)//exponential integrative gain of Loop Filter
+
 #ifndef nSymb
-#define nSymb 8
+#define nSymb (8)
+
 #endif
 
 #define smplPerSymb  (160)//samples per symbol rate
@@ -32,5 +34,17 @@ typedef struct {
 	int * symbLock;
 } demod_mem;
 
-void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp, 
-	demod_mem * p, mem_cic * str, mem_cic * str1, sampler_mem * str_smp);
+typedef struct demodArg{
+	int complex * inputSignal;
+	int * InitFreq;
+	int * vgaMant;
+	int * vgaExp;
+	int activeList;
+	demod_mem * str_demod[12];
+	mem_cic * str_cic[12];
+	mem_cic * str_cicSmp[12];
+	sampler_mem * str_smp[12];
+}demodArg_t;
+
+//void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp, demod_mem * p, mem_cic * str, mem_cic * str1, sampler_mem * str_smp);
+int pttA2Demod(demodArg_t * ptr);

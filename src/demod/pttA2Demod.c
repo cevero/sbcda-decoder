@@ -2,26 +2,22 @@
 #include "ncoLut.h"
 #include "stdlib.h"
 
-void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp, demod_mem * p, mem_cic * str, mem_cic * str1, sampler_mem * str_smp)
+//void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp, demod_mem * p, mem_cic * str, mem_cic * str1, sampler_mem * str_smp)
+int pttA2Demod(demodArg_t * ptr)
 {
 	int iSymb, i0;
 	
-//	int complex * inputBlock = rt_alloc(MEM_ALLOC,smplPerSymb*sizeof(int complex));
-	int * inputBlockRe = rt_alloc(MEM_ALLOC,smplPerSymb*sizeof(int));	
-	int * inputBlockIm = rt_alloc(MEM_ALLOC,smplPerSymb*sizeof(int));
-//	int complex * ncoSignal = rt_alloc(MEM_ALLOC,smplPerSymb*sizeof(int complex));
+	short * inputBlockRe = rt_alloc(MEM_ALLOC,smplPerSymb*sizeof(short));	
+	short * inputBlockIm = rt_alloc(MEM_ALLOC,smplPerSymb*sizeof(short));
         int * ncoSignalRe = rt_alloc(MEM_ALLOC,smplPerSymb*sizeof(int));
         int * ncoSignalIm = rt_alloc(MEM_ALLOC,smplPerSymb*sizeof(int));
-//	int complex * cplxMult = rt_alloc(MEM_ALLOC,smplPerSymb*sizeof(int complex));
 	int * cplxMultRe = rt_alloc(MEM_ALLOC,smplPerSymb*sizeof(int));
 	int * cplxMultIm = rt_alloc(MEM_ALLOC,smplPerSymb*sizeof(int));
-//	int complex * mfSignal = rt_alloc(MEM_ALLOC,(smplPerSymb/deciRate)*sizeof(int complex));
 	int * mfSignalRe = rt_alloc(MEM_ALLOC,(smplPerSymb/deciRate)*sizeof(int));
 	int * mfSignalIm = rt_alloc(MEM_ALLOC,(smplPerSymb/deciRate)*sizeof(int));
 
 	int * demodSignal = rt_alloc(MEM_ALLOC,(smplPerSymb/deciRate)*sizeof(int));
 	int * ncoTheta = rt_alloc(MEM_ALLOC,smplPerSymb*sizeof(int));
-//	int complex * vgaSignal = rt_alloc(MEM_ALLOC,(smplPerSymb/deciRate)*sizeof(int complex));
 	int * vgaSignalRe = rt_alloc(MEM_ALLOC,(smplPerSymb/deciRate)*sizeof(int));
 	int * vgaSignalIm = rt_alloc(MEM_ALLOC,(smplPerSymb/deciRate)*sizeof(int));
 
@@ -31,15 +27,30 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp
 	int angDeciSignal, theta, piAdd,lpf;
 	int cic_time, sampler_time,cpxMult_time;
 
-	for(iSymb = 0; iSymb<nSymb;iSymb++){
-		p->symbCount++;
+	/***************************************************************************/
+	int ncoInitFreq = ptr->InitFreq[rt_core_id()];
+	int vgaMant = ptr->vgaMant[rt_core_id()];
+	int vgaExp = ptr->vgaExp[rt_core_id()];
 
+	demod_mem * p;
+	p = (ptr->str_demod[rt_core_id()]);
+	mem_cic * str;
+	str = (ptr->str_cic[rt_core_id()]);
+	mem_cic * str1;
+	str1 = (ptr->str_cicSmp[rt_core_id()]);
+	sampler_mem * str_smp;
+	str_smp = (ptr->str_smp[rt_core_id()]);
+	/***************************************************************************/
+
+	for(iSymb = 0; iSymb<nSymb;iSymb++){	
+
+		p->symbCount++;
 		/*
 		*	Partitioning of the input signal per symbol (160 samples/symbol)
 		*/
 		for(i0=0;i0<smplPerSymb;i0++){
-			inputBlockRe[i0] = creal(inputSignal[i0+smplPerSymb*iSymb]);
-			inputBlockIm[i0] = cimag(inputSignal[i0+smplPerSymb*iSymb]);
+			inputBlockRe[i0] = creal(ptr->inputSignal[i0+smplPerSymb*iSymb]);
+			inputBlockIm[i0] = cimag(ptr->inputSignal[i0+smplPerSymb*iSymb]);
 		}
 
 		/*
@@ -49,6 +60,7 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp
 		
 		incAndOvFlow(p->thetaNco, ncoFreq, smplPerSymb, freqW, ncoTheta);
 		p->thetaNco = ncoTheta[smplPerSymb-1];
+        
 		
 		for(i0=0;i0<smplPerSymb;i0++){			
 			lutAddr = ncoTheta[i0] >> (int)cabs(thetaW-freqW);
@@ -61,13 +73,14 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp
 		* floor(float)
 		*/		
 		cpxMult_time = rt_time_get_us();
-
 		for (i0=0;i0<smplPerSymb;i0++){
-			cplxMultRe[i0] = (inputBlockRe[i0]*ncoSignalRe[i0]-inputBlockIm[i0]*ncoSignalIm[i0])>>(ncoAmpW-1);//cplxMult[i0] = inputBlock[i0]*ncoSignal[i0];
+			//cplxMult[i0] = inputBlock[i0]*ncoSignal[i0];
+			cplxMultRe[i0] = (inputBlockRe[i0]*ncoSignalRe[i0]-inputBlockIm[i0]*ncoSignalIm[i0])>>(ncoAmpW-1);
 			cplxMultIm[i0] = (inputBlockRe[i0]*ncoSignalIm[i0]+inputBlockIm[i0]*ncoSignalRe[i0])>>(ncoAmpW-1);
 //			((int complex) cplxMult[i0])*pow(2,-(ncoAmpW-1));
 //			cplxMult[i0] = floor(creal(cplxMult[i0]))+floor(cimag(cplxMult[i0]))*I;
 		}
+
 		cpxMult_time = rt_time_get_us()-cpxMult_time;
 		if(iSymb==0){
 //			printf("cpxMult time: %d us\n",cpxMult_time);
@@ -124,23 +137,19 @@ void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp
 		p->ncoDFreq = lpf;	
 
 	}
-//rt_free(MEM_ALLOC,inputBlock,smplPerSymb*(sizeof(int complex)));
-rt_free(MEM_ALLOC,inputBlockRe,smplPerSymb*(sizeof(int)));
-rt_free(MEM_ALLOC,inputBlockIm,smplPerSymb*(sizeof(int)));
-//rt_free(MEM_ALLOC,ncoSignal,smplPerSymb*(sizeof(int complex)));
+rt_free(MEM_ALLOC,inputBlockRe,smplPerSymb*(sizeof(short)));
+rt_free(MEM_ALLOC,inputBlockIm,smplPerSymb*(sizeof(short)));
 rt_free(MEM_ALLOC,ncoSignalRe,smplPerSymb*(sizeof(int)));
 rt_free(MEM_ALLOC,ncoSignalIm,smplPerSymb*(sizeof(int)));
-//rt_free(MEM_ALLOC,vgaSignal,(smplPerSymb/deciRate)*sizeof(int complex));
 rt_free(MEM_ALLOC,vgaSignalRe,(smplPerSymb/deciRate)*sizeof(int));
 rt_free(MEM_ALLOC,vgaSignalIm,(smplPerSymb/deciRate)*sizeof(int));
-//rt_free(MEM_ALLOC,cplxMult,smplPerSymb*(sizeof(int complex)));   
 rt_free(MEM_ALLOC,cplxMultRe,smplPerSymb*(sizeof(int)));   
 rt_free(MEM_ALLOC,cplxMultIm,smplPerSymb*(sizeof(int)));   
-//rt_free(MEM_ALLOC,mfSignal,(smplPerSymb/deciRate)*(sizeof(int complex)));
 rt_free(MEM_ALLOC,mfSignalRe,(smplPerSymb/deciRate)*(sizeof(int)));
 rt_free(MEM_ALLOC,mfSignalIm,(smplPerSymb/deciRate)*(sizeof(int)));
 rt_free(MEM_ALLOC,demodSignal,(smplPerSymb/deciRate)*sizeof(int));
 rt_free(MEM_ALLOC,ncoTheta,(smplPerSymb)*sizeof(int));
+return 0;
 }
 
 
