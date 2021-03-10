@@ -90,9 +90,9 @@ static void mureceiver(PTTPackage_Typedef * wpckg[NUMBER_OF_DECODERS])
 
 	int tmp0, f=0,vga, activeList, nWind, spWind,iSymb,i0,i2;
 	int detect_time=0, demod_time=0, decod_time=0, total_time=0,aux_time, decod_per_channel=0;
-#ifdef DEBUG_DEMOD
+//#ifdef DEBUG_DEMOD
 	int debug = 0;
-#endif
+//#endif
 
 /*
 //	Calculate LUT of Twiddle factors for fft computation-----*
@@ -162,25 +162,28 @@ for(n0=0; n0<NSIM;n0++){
 			}
 		}
 #endif
-
-#ifdef DEBUG_DEMOD
+int A0;
+//#ifdef DEBUG_DEMOD
 //		DEBUG DEMOD AND DECOD PROCESSES  
 		if(nWind==1 && debug==0){
-			PTT_DP_LIST[2]->detect_state = FREQ_DECODING;
-			PTT_DP_LIST[2]->freq_amp = 793;
-			PTT_DP_LIST[2]->freq_idx = 1788;
-			PTT_DP_LIST[2]->timeout = 100;
-			vga = VgaGain(PTT_DP_LIST[2]->freq_amp);
-			d_ptr->vgaExp[2] = -1*(vga&0x3F);
-			d_ptr->vgaMant[2] = (vga>>6)&0xFF;
-			d_ptr->InitFreq[2] = PTT_DP_LIST[0]->freq_idx<<9;
- //			printf("[%d]: mant %d exp %d\n",0, vgaMant[0],vgaExp[0]);
-			wpckg[2]->status=PTT_FRAME_SYNCH;
-			wpckg[2]->carrierFreq= PTT_DP_LIST[0]->freq_idx;
-			wpckg[2]->carrierAbs= PTT_DP_LIST[0]->freq_amp;
-			d_ptr->activeList++;
+			for(int iprl=2;iprl<8;++iprl){
+				A0 = iprl%2;
+				PTT_DP_LIST[iprl]->detect_state = FREQ_DECODING;
+				PTT_DP_LIST[iprl]->freq_amp = PTT_DP_LIST[A0]->freq_amp;
+				PTT_DP_LIST[iprl]->freq_idx = PTT_DP_LIST[A0]->freq_idx;
+				PTT_DP_LIST[iprl]->timeout = 100;
+				vga = VgaGain(PTT_DP_LIST[iprl]->freq_amp);
+				d_ptr->vgaExp[iprl] = -1*(vga&0x3F);
+				d_ptr->vgaMant[iprl] = (vga>>6)&0xFF;
+				d_ptr->InitFreq[iprl] = PTT_DP_LIST[A0]->freq_idx<<9;
+ //				printf("[%d]: mant %d exp %d\n",0, vgaMant[0],vgaExp[0]);
+				wpckg[iprl]->status=PTT_FRAME_SYNCH;
+				wpckg[iprl]->carrierFreq= PTT_DP_LIST[A0]->freq_idx;
+				wpckg[iprl]->carrierAbs= PTT_DP_LIST[A0]->freq_amp;
+				d_ptr->activeList++;
+			}
 		}
-#endif
+//#endif
 
 #ifndef DETECT_DEBUG
 //		decodes signals from active channels
@@ -218,7 +221,7 @@ for(n0=0; n0<NSIM;n0++){
 //	printf("---------------> Check <-------------------\n\n");  
 }
 
-#define STACK_SIZE	4048
+#define STACK_SIZE	4096
 #define MOUNT           1
 #define UNMOUNT         0
 #define CID             0
@@ -265,8 +268,8 @@ int main()
 	void *stacks = rt_alloc(MEM_ALLOC, STACK_SIZE);
 	if(stacks == NULL) return -1;
 //	rt_cluster_call(NULL, CID, entry, entry_args, stacks, master_stack_size, slave_stack_size, nb_cores, event)
-	rt_cluster_call(NULL, CID, (void *)mureceiver, (void *)wpckg, stacks, STACK_SIZE, STACK_SIZE,8, p_event);
-//	rt_cluster_call(NULL, CID, cluster_entry, NULL, stacks, STACK_SIZE>>1, STACK_SIZE>>1,rt_nb_pe(), p_event);
+	rt_cluster_call(NULL, CID, (void *)mureceiver, (void *)wpckg, stacks, 2400, 1400,8, p_event);
+//	rt_cluster_call(NULL, CID, cluster_entry, NULL, stacks, STACK_SIZE>>1, STACK_SIZE>>2,rt_nb_pe(), p_event);
 
 	while(!done){
 		rt_event_execute(NULL, 1);

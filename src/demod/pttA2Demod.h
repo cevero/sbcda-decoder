@@ -22,7 +22,14 @@
 
 #ifndef nSymb
 #define nSymb (8)
+#endif
 
+#ifndef NUMBER_OF_DECODERS
+#define NUMBER_OF_DECODERS (12)
+#endif
+
+#ifndef NOC
+#define NOC (8)
 #endif
 
 #define smplPerSymb  (160)//samples per symbol rate
@@ -35,18 +42,18 @@ typedef struct {
 } demod_mem;
 
 typedef struct demodArg{
-	int * inputBlockRe[8];
-	int * inputBlockIm[8];
-	int * ncoTheta[8];
+	int * inputBlockRe[NOC];
+	int * inputBlockIm[NOC];
+	int * ncoTheta[NOC];
 	int * InitFreq;
 	int * vgaMant;
 	int * vgaExp;
 	int iSymb;
 	int activeList;
-	demod_mem * str_demod[12];
-	mem_cic * str_cic[12];
-	mem_cic * str_cicSmp[12];
-	sampler_mem * str_smp[12];
+	demod_mem * str_demod[NUMBER_OF_DECODERS];
+	mem_cic * str_cic[NUMBER_OF_DECODERS];
+	mem_cic * str_cicSmp[NUMBER_OF_DECODERS];
+	sampler_mem * str_smp[NUMBER_OF_DECODERS];
 }demodArg_t;
 
 int pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp, demod_mem * p, mem_cic * str, mem_cic * str1, sampler_mem * str_smp);

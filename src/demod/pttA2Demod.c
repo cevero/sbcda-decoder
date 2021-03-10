@@ -39,10 +39,10 @@ int pttA2DemodStep(demodArg_t * ptr)
 	sampler_mem * str_smp;
 	str_smp = (ptr->str_smp[rt_core_id()]);
 	/***************************************************************************/
-//	if(rt_core_id()==2)
-//		printf("(%d) %d %d\n",rt_core_id(),vgaMant, vgaExp);
-//	return 0;
-	iSymb = ptr->iSymb;
+/*	if(rt_core_id()!=1)
+		printf("(%d) %d %d\n",rt_core_id(),inputBlockRe[0], inputBlockIm[0]);
+	return 0;
+*/	iSymb = ptr->iSymb;
 	p->symbCount++;
 	/*
 	*	NCO update and LUT
@@ -69,7 +69,10 @@ int pttA2DemodStep(demodArg_t * ptr)
 //		cplxMult[i0] = floor(creal(cplxMult[i0]))+floor(cimag(cplxMult[i0]))*I;
 	}
 	
-
+/*	if(rt_core_id()!=1)
+		printf("(%d) %d %d\n",rt_core_id(),inputBlockRe[0], inputBlockIm[0]);
+	return 0;
+*/
 	if(iSymb==0){
 //		printf("cpxMult time: %d us\n",cpxMult_time);
 	}
@@ -79,7 +82,10 @@ int pttA2DemodStep(demodArg_t * ptr)
 
 	cicFilter(inputBlockRe,inputBlockIm,str,mfSignalRe,mfSignalIm,deciRate,delayIdx,smplPerSymb);
 	
-
+/*	if(rt_core_id()!=1)
+		printf("(%d) %d %d\n",rt_core_id(),mfSignalRe[0], mfSignalIm[0]);
+	return 0;
+*/
 	/*
 	*	VGA input mfSignal output demodSignal
 	*/
@@ -96,7 +102,7 @@ int pttA2DemodStep(demodArg_t * ptr)
 	*/
 	sampler(demodSignal, str_smp, str1);
 /*
-	if(rt_core_id()==1){
+	if(rt_core_id()!=1){
 		printf("(%d) %d\n",rt_core_id(),str_smp->symbOut);
 	}
 */
@@ -120,7 +126,9 @@ int pttA2DemodStep(demodArg_t * ptr)
 	piAdd = kpUInt*theta+(p->lfAcc>>(kiExp-kpExp));		
 	p->lfAcc +=kiUInt*theta;
 	lpf = piAdd>>(kpExp+thetaW-freqW);
-	p->ncoDFreq = lpf;	
+	p->ncoDFreq = lpf;
+
+//	rt_team_barrier();
 	return 0;
 }
 #define NSIG (3)
@@ -129,7 +137,7 @@ int prlpttA2Demod(int complex * inputSignal, demodArg_t * ptr)
 
 	int i0, iSymb;
 	int activeList = ptr->activeList;
-
+	//printf("activeList %d\n",activeList);
 	for(i0=0;i0<activeList;++i0){
 		ptr->inputBlockRe[i0] = rt_alloc(MEM_ALLOC, smplPerSymb*sizeof(int));	
 		ptr->inputBlockIm[i0] = rt_alloc(MEM_ALLOC, smplPerSymb*sizeof(int));
