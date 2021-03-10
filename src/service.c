@@ -112,7 +112,7 @@ void frameSynch(PTTPackage_Typedef * wpckg, int pttd_symbol)
 					== (SYNCH_PATTERN & SYNCH_MIN_MASK)
 					|| (wpckg->synch_patternB & SYNCH_MIN_MASK)
 							== (SYNCH_PATTERN & SYNCH_MIN_MASK)) { // match!!!
-		//		printf("SYNC OK!!!!\n\n");
+//				printf("SYNC OK!!!!\n\n");
 				wpckg->status = PTT_DATA;
 				wpckg->symb_cnt = 0;
 			}

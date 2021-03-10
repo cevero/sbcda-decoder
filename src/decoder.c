@@ -46,6 +46,7 @@ void clearDecoder(FreqsRecord_Typedef * PTT_DP_LIST,PTTPackage_Typedef * wpckg, 
 	wpckg->errorCode = 0;
 	wpckg->carrierAbs = 0;
 	wpckg->carrierFreq = 0;
+	wpckg->msgByteLength = 0;
 	wpckg->status = PTT_FREE;
 	for(i0=0;i0<nSymb;i0++){
 		wpckg->symb_array[i0] = 0;
@@ -76,6 +77,40 @@ void UpdateTimeout(FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS], PTTPac
 		}
 	}
 }
+void bitDetection(FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS], PTTPackage_Typedef * wpckg[NUMBER_OF_DECODERS], demodArg_t * ptr)
+{
+	int iCh,iSymb,i2;
+	for (iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
+		if(PTT_DP_LIST[iCh]->detect_state==FREQ_DECODING){
+//			printf("Starting bit detection process channel %d\n",iCh);
+//			pttA2Demod(inputSignal, ptr->InitFreq[iCh], ptr->vgaMant[iCh], ptr->vgaExp[iCh], ptr->str_demod[iCh], ptr->str_cic[iCh], ptr->str_cicSmp[iCh], ptr->str_smp[iCh]);
+
+			for(iSymb = 0;iSymb<nSymb;iSymb++){
+				if(ptr->str_demod[iCh]->symbLock[iSymb]){
+//					if(iCh!=1)
+//						printf("(%d) smb %d %d",iCh,ptr->str_demod[iCh]->symbOut[iSymb],ptr->str_demod[iCh]->symbLock[iSymb]);
+					wpckg[iCh]->total_symbol_cnt++;
+					if(wpckg[iCh]->status==PTT_FRAME_SYNCH){
+						frameSynch(wpckg[iCh],ptr->str_demod[iCh]->symbOut[iSymb]);   
+					}else if(wpckg[iCh]->status==PTT_DATA){
+						readData(wpckg[iCh],ptr->str_demod[iCh]->symbOut[iSymb]);
+						if(wpckg[iCh]->status==PTT_READY){
+//							fill the package and clear the decoder
+							//printf("Clearing decoder %d\n",iCh);
+//							clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], ptr->str_cic[iCh], ptr->str_cicSmp[iCh], ptr->str_smp[iCh], ptr->str_demod[iCh]);
+//							ptr->activeList--;
+                //DEBUG Purpose                
+						}
+					}else if(wpckg[iCh]->status==PTT_ERROR){
+						printf("Clearing decoder %d\n",iCh);
+						clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], ptr->str_cic[iCh], ptr->str_cicSmp[iCh], ptr->str_smp[iCh], ptr->str_demod[iCh]);
+						ptr->activeList--;
+					}
+				}
+			}
+		}
+    }//END FOR SCROLLING CHANNELS
+}
 
 //void decoder(int complex *inputSignal, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS], PTTPackage_Typedef * wpckg[NUMBER_OF_DECODERS], int * InitFreq, int * vgaMant, int * vgaExp, demod_mem * str_demod[NUMBER_OF_DECODERS], mem_cic * str_cic[NUMBER_OF_DECODERS], mem_cic * str_cicSmp[NUMBER_OF_DECODERS], sampler_mem * str_smp[NUMBER_OF_DECODERS])
 void decoder(int complex * inputSignal, demodArg_t * ptr, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS], PTTPackage_Typedef * wpckg[NUMBER_OF_DECODERS])
@@ -85,59 +120,7 @@ void decoder(int complex * inputSignal, demodArg_t * ptr, FreqsRecord_Typedef * 
 	if(ptr->activeList>0){
 //		printf("activeList: %d\n",ptr->activeList);
 		prlpttA2Demod(inputSignal, ptr);
-	}/*
-	for(iCh=0;iCh<2;++iCh){
-		for(iSymb=0;iSymb<8;++iSymb){
-			printf("[%d] %d %d ",iCh, ptr->str_demod[iCh]->symbLock[iSymb],	ptr->str_demod[iCh]->symbOut[iSymb]);
-		}
+		bitDetection(PTT_DP_LIST, wpckg, ptr);
 	}
-}
-*/
-//	printf("HERE!\n");
-	for (iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
-		if(PTT_DP_LIST[iCh]->detect_state==FREQ_DECODING){
-//	printf("Starting demod process channel %d\n",iCh);
-//	demod_time = rt_time_get_us();
-//			decod_per_channel = rt_time_get_us();
-//			pttA2Demod(inputSignal, ptr->InitFreq[iCh], ptr->vgaMant[iCh], ptr->vgaExp[iCh], ptr->str_demod[iCh], ptr->str_cic[iCh], ptr->str_cicSmp[iCh], ptr->str_smp[iCh]);
 
-//	demod_time = rt_time_get_us()-demod_time;
-//	printf("Demod time: %d ms \n",demod_time/1000);
-			for(iSymb = 0;iSymb<nSymb;iSymb++){
-				if(ptr->str_demod[iCh]->symbLock[iSymb]){
-//					printf("[%d] smb %d",iCh,ptr->str_demod[iCh]->symbOut[iSymb]);
-					wpckg[iCh]->total_symbol_cnt++;
-					if(wpckg[iCh]->status==PTT_FRAME_SYNCH){
-						frameSynch(wpckg[iCh],ptr->str_demod[iCh]->symbOut[iSymb]);   
-					}else if(wpckg[iCh]->status==PTT_DATA){
-						readData(wpckg[iCh],ptr->str_demod[iCh]->symbOut[iSymb]);
-						if(wpckg[iCh]->status==PTT_READY){
-						
-                //fill the package and clear the decoder
-//							printf("ready!\n");
-//							printf("|%d|\n",iCh);
-//							printf("Freq: %d Abs: %d Length: %d\n",wpckg[iCh]->carrierFreqi,wpckg[iCh]->carrierAbs, wpckg[iCh]->msgByteLength);
-							for(i2=0;i2<wpckg[iCh]->msgByteLength;i2++){
-//								printf("%x\n",wpckg[iCh]->userMsg[i2]);
-							}
-							//printf("Clearing decoder %d\n",iCh);
-//							clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh], str_demod[iCh]);
-							clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], ptr->str_cic[iCh], ptr->str_cicSmp[iCh], ptr->str_smp[iCh], ptr->str_demod[iCh]);
-							ptr->activeList--;
-                //DEBUG Purpose                
-						}
-					}else if(wpckg[iCh]->status==PTT_ERROR){
-						printf("Clearing decoder %d\n",iCh);
-						//clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh], str_demod[iCh]);
-						clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], ptr->str_cic[iCh], ptr->str_cicSmp[iCh], ptr->str_smp[iCh], ptr->str_demod[iCh]);
-						ptr->activeList--;
-					}
-				}
-			}
-//			decod_per_channel= rt_time_get_us()-decod_per_channel;
-//	printf("decod_time %d: %d us\n",iCh,decod_per_channel/1000);
-		}
-//	rt_gpio_set_pin_value(0,TRIGGER,0);
-    }//END FOR SCROLLING CHANNELS
-  // rt_gpio_set_pin_value(0,TRIGGER,0);
 }

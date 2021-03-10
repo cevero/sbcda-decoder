@@ -10,14 +10,8 @@
 
 //#define DETECT_DEBUG
 //#define DEBUG_DEMOD
-typedef struct OutputBuffer{
-	short carrierFreq;
-	short carrierAbs;
-	short msgByteLength;
-	short userMsg[35];
-}OutputBuffer_t;
 
-static void mureceiver(OutputBuffer_t * outBuf)
+static void mureceiver(PTTPackage_Typedef * wpckg[NUMBER_OF_DECODERS])
 {
 	rt_freq_set(RT_FREQ_DOMAIN_CL,  175000000);
 //**************************GPIO Setup*****************************************
@@ -70,11 +64,11 @@ static void mureceiver(OutputBuffer_t * outBuf)
 	}
 
 //	This struct is used to control the FSM and show bit results
-	PTTPackage_Typedef * wpckg[NUMBER_OF_DECODERS];
+/*	PTTPackage_Typedef * wpckg[NUMBER_OF_DECODERS];
 	for(iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
 		wpckg[iCh] = rt_alloc(MEM_ALLOC,sizeof(PTTPackage_Typedef));
 	}
-
+*/
 //	struct stores the interface (detect to demod) parameters
 	FreqsRecord_Typedef *PTT_DP_LIST[NUMBER_OF_DECODERS];
 	for(iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
@@ -94,7 +88,7 @@ static void mureceiver(OutputBuffer_t * outBuf)
 	d_ptr->InitFreq = rt_alloc(MEM_ALLOC,NUMBER_OF_DECODERS*sizeof(int));
 	d_ptr->activeList = 0;
 
-	int tmp0,f=0,vga, activeList, nWind, spWind,iSymb,i0,i2;
+	int tmp0, f=0,vga, activeList, nWind, spWind,iSymb,i0,i2;
 	int detect_time=0, demod_time=0, decod_time=0, total_time=0,aux_time, decod_per_channel=0;
 #ifdef DEBUG_DEMOD
 	int debug = 0;
@@ -114,7 +108,6 @@ static void mureceiver(OutputBuffer_t * outBuf)
 	for(iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
 //		printf("Clearing decoder %d\n",iCh);
 		clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], d_ptr->str_cic[iCh], d_ptr->str_cicSmp[iCh], d_ptr->str_smp[iCh], d_ptr->str_demod[iCh]);
-//		printf("[%d] %d %d %d %d %d %d %d %d\n",iCh,d_ptr->str_demod[iCh]->symbLock[0], d_ptr->str_demod[iCh]->symbLock[1], d_ptr->str_demod[iCh]->symbLock[2], d_ptr->str_demod[iCh]->symbLock[3], d_ptr->str_demod[iCh]->symbLock[4], d_ptr->str_demod[iCh]->symbLock[5], d_ptr->str_demod[iCh]->symbLock[6], d_ptr->str_demod[iCh]->symbLock[7]);
 	}
 #endif
 
@@ -153,7 +146,7 @@ for(n0=0; n0<NSIM;n0++){
 //		rt_gpio_set_pin_value(0,TRIGGER,0);
 
 //		Setup Parameters: Frequency, Gain, Controls status of pckg and Detect.
-		for (iCh=0;iCh<2;iCh++){
+		for (iCh=0;iCh<3;iCh++){
 			if(PTT_DP_LIST[iCh]->detect_state==FREQ_DETECTED_TWICE){
 				vga = VgaGain(PTT_DP_LIST[iCh]->freq_amp);
 				d_ptr->vgaExp[iCh] = -1*(vga&0x3F);
@@ -173,26 +166,29 @@ for(n0=0; n0<NSIM;n0++){
 #ifdef DEBUG_DEMOD
 //		DEBUG DEMOD AND DECOD PROCESSES  
 		if(nWind==1 && debug==0){
-			PTT_DP_LIST[0]->detect_state = FREQ_DECODING;
-			PTT_DP_LIST[0]->freq_amp = 793;
-			PTT_DP_LIST[0]->freq_idx = 1788;
-			PTT_DP_LIST[0]->timeout = 100;
-			vga = VgaGain(PTT_DP_LIST[0]->freq_amp);
-			vgaExp[0] = -1*(vga&0x3F);
-			vgaMant[0] = (vga>>6)&0xFF;
-			InitFreq[0] = PTT_DP_LIST[0]->freq_idx<<9;
+			PTT_DP_LIST[2]->detect_state = FREQ_DECODING;
+			PTT_DP_LIST[2]->freq_amp = 793;
+			PTT_DP_LIST[2]->freq_idx = 1788;
+			PTT_DP_LIST[2]->timeout = 100;
+			vga = VgaGain(PTT_DP_LIST[2]->freq_amp);
+			d_ptr->vgaExp[2] = -1*(vga&0x3F);
+			d_ptr->vgaMant[2] = (vga>>6)&0xFF;
+			d_ptr->InitFreq[2] = PTT_DP_LIST[0]->freq_idx<<9;
  //			printf("[%d]: mant %d exp %d\n",0, vgaMant[0],vgaExp[0]);
-			wpckg[0]->status=PTT_FRAME_SYNCH;
+			wpckg[2]->status=PTT_FRAME_SYNCH;
+			wpckg[2]->carrierFreq= PTT_DP_LIST[0]->freq_idx;
+			wpckg[2]->carrierAbs= PTT_DP_LIST[0]->freq_amp;
+			d_ptr->activeList++;
 		}
 #endif
 
 #ifndef DETECT_DEBUG
 //		decodes signals from active channels
-//		decoder(d_ptr->inputSignal, PTT_DP_LIST, wpckg, d_ptr->InitFreq, d_ptr->vgaMant, d_ptr->vgaExp, d_ptr->str_demod, d_ptr->str_cic, d_ptr->str_cicSmp, d_ptr->str_smp);
-	decoder(inputSignal, d_ptr, PTT_DP_LIST, wpckg);
+		decoder(inputSignal, d_ptr, PTT_DP_LIST, wpckg);
 #endif 
 	}//END SCROLLING WINDOWS
-}//END FOR NSIM 
+}//END FOR NSIM
+	
 	rt_gpio_set_pin_value(0,TRIGGER,0);
 
 	rt_free(MEM_ALLOC,prevIdx,DFT_LENGTH*sizeof(int));
@@ -203,7 +199,6 @@ for(n0=0; n0<NSIM;n0++){
   
 	for(iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
 		rt_free(MEM_ALLOC,PTT_DP_LIST[iCh],sizeof(FreqsRecord_Typedef));
-		rt_free(MEM_ALLOC,wpckg[iCh],sizeof(PTTPackage_Typedef));
     
 #ifndef DETECT_DEBUG
 		rt_free(MEM_ALLOC,d_ptr->str_smp[iCh]->smplBuffer,2*smplPerSymb*(sizeof(int)));   
@@ -223,7 +218,7 @@ for(n0=0; n0<NSIM;n0++){
 //	printf("---------------> Check <-------------------\n\n");  
 }
 
-#define STACK_SIZE	3048
+#define STACK_SIZE	4048
 #define MOUNT           1
 #define UNMOUNT         0
 #define CID             0
@@ -251,7 +246,7 @@ static void end_of_call(void *arg)
 int main()
 {
 //	rt_event_sched_t * p_sched = rt_event_internal_sched();
-	OutputBuffer_t outBuf;
+
 	rt_freq_set(RT_FREQ_DOMAIN_FC,250000000);
 	printf("Entering main controller \n");
 	int t_time = rt_time_get_us();  
@@ -261,27 +256,45 @@ int main()
 	rt_event_t *p_event = rt_event_get(NULL, end_of_call, (void *) CID);
 
 	rt_cluster_mount(MOUNT, CID, 0, NULL);
-
+	
+	PTTPackage_Typedef * wpckg[NUMBER_OF_DECODERS];
+	for(int iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
+		wpckg[iCh] = rt_alloc(MEM_ALLOC,sizeof(PTTPackage_Typedef));
+	}
+	
 	void *stacks = rt_alloc(MEM_ALLOC, STACK_SIZE);
 	if(stacks == NULL) return -1;
 //	rt_cluster_call(NULL, CID, entry, entry_args, stacks, master_stack_size, slave_stack_size, nb_cores, event)
-	rt_cluster_call(NULL, CID, (void *)mureceiver, (void *)&outBuf, stacks, STACK_SIZE, STACK_SIZE,8, p_event);
+	rt_cluster_call(NULL, CID, (void *)mureceiver, (void *)wpckg, stacks, STACK_SIZE, STACK_SIZE,8, p_event);
 //	rt_cluster_call(NULL, CID, cluster_entry, NULL, stacks, STACK_SIZE>>1, STACK_SIZE>>1,rt_nb_pe(), p_event);
 
 	while(!done){
 		rt_event_execute(NULL, 1);
 	}
 
-	rt_cluster_mount(UNMOUNT, CID, 0, NULL);
+
 	t_time = rt_time_get_us()-t_time;
 	printf("Total time: %d.%d ms\n",t_time/1000,(t_time-((t_time/1000)*1000))/10);
-/*  	printf("|%d|\n",iCh);
-//	printf("freq_idx: %d\namp: %d \nmsgLength: %d\n",outBuf.carrierFreq,outBuf.carrierAbs,outBuf.msgByteLength);
-	for(int i0=0;i0<outBuf.msgByteLength;i0++){
-		printf("%x\n",outBuf.userMsg[i0]);
+	for(int iCh = 0;iCh<NUMBER_OF_DECODERS;++iCh){
+		if(wpckg[iCh]->status==PTT_READY){
+		printf("\n");
+	  		printf("decoder_id: %d\n",iCh);
+			printf("freq:\tamp:\tlength:\n");
+			printf("%d\t%d\t%d\n",wpckg[iCh]->carrierFreq,wpckg[iCh]->carrierAbs,wpckg[iCh]->msgByteLength);
+			printf("User MSG: \n");
+			for(int i0=0;i0<wpckg[iCh]->msgByteLength;i0++){
+				printf("%x ",wpckg[iCh]->userMsg[i0]);
+			}
+			printf("\n");
+		}
 	}
-*/
 
-	printf("Test success: Leaving main controller\n");
+	for(int iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
+		rt_free(MEM_ALLOC,wpckg[iCh],sizeof(PTTPackage_Typedef));
+	}
+
+	rt_cluster_mount(UNMOUNT, CID, 0, NULL);
+
+	printf("\nTest success: Leaving main controller\n");
 	return 0;
 }

@@ -39,7 +39,6 @@ int total_symbol_cnt;//						*
 int bit_cnt; //< Number of bits of the PTT message 		*
 int symb_cnt;//							*
 //***************************************************************
-
 } PTTPackage_Typedef;
 
 void incAndOvFlow(int prevAcc,int inc,int nInc,int accWidth, int * accOut);

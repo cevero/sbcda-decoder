@@ -35,9 +35,9 @@ typedef struct {
 } demod_mem;
 
 typedef struct demodArg{
-	int * inputBlockRe[2];
-	int * inputBlockIm[2];
-	int * ncoTheta[2];
+	int * inputBlockRe[8];
+	int * inputBlockIm[8];
+	int * ncoTheta[8];
 	int * InitFreq;
 	int * vgaMant;
 	int * vgaExp;
