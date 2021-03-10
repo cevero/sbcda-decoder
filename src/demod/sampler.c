@@ -32,7 +32,7 @@ void sampler(int *demodSignal, sampler_mem * str_smp, mem_cic * str)
 	}
   str_smp->lutSign = -str_smp->lutSign;
 	//Moving average
-	cicFilterCplxStep(sqrdSignalRe, sqrdSignalIm, str, &cicSignalRe, &cicSignalIm, smpDeciRate, smpDelayIdx, nSymb);
+	cicFilter(sqrdSignalRe, sqrdSignalIm, str, &cicSignalRe, &cicSignalIm, smpDeciRate, smpDelayIdx, nSymb);
 	movingAvgRe = cicSignalRe/(avgLen*nSymb);
 	movingAvgIm = cicSignalIm/(avgLen*nSymb);
       

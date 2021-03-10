@@ -35,10 +35,13 @@ typedef struct {
 } demod_mem;
 
 typedef struct demodArg{
-	int complex * inputSignal;
+	int * inputBlockRe[2];
+	int * inputBlockIm[2];
+	int * ncoTheta[2];
 	int * InitFreq;
 	int * vgaMant;
 	int * vgaExp;
+	int iSymb;
 	int activeList;
 	demod_mem * str_demod[12];
 	mem_cic * str_cic[12];
@@ -46,5 +49,9 @@ typedef struct demodArg{
 	sampler_mem * str_smp[12];
 }demodArg_t;
 
-//void pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp, demod_mem * p, mem_cic * str, mem_cic * str1, sampler_mem * str_smp);
-int pttA2Demod(demodArg_t * ptr);
+int pttA2Demod(int complex * inputSignal,int ncoInitFreq,int vgaMant,int vgaExp, demod_mem * p, mem_cic * str, mem_cic * str1, sampler_mem * str_smp);
+//
+//int pttA2Demod(int complex * inputSignal, demodArg_t * ptr);
+
+int prlpttA2Demod(int complex * inputSignal, demodArg_t * ptr);
+int pttA2DemodStep(demodArg_t * ptr);
