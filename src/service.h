@@ -39,15 +39,23 @@ int total_symbol_cnt;//						*
 int bit_cnt; //< Number of bits of the PTT message 		*
 int symb_cnt;//							*
 //***************************************************************
-} PTTPackage_Typedef;
+} PTTService_T;
+
+typedef struct {
+int status;
+int carrierFreq;/* Carrier Frequency (kHz=carrierFreq*128/2^20+401635)*/
+int carrierAbs; /* Carrier Amplitude at ADC interface output */
+int msgByteLength; /**< Message Length parameter */
+int userMsg[35];
+} PTTPackage_T;
 
 void incAndOvFlow(int prevAcc,int inc,int nInc,int accWidth, int * accOut);
 unsigned int decodeBit(unsigned int symb0, unsigned int symb1);
 unsigned int calcMessageLength(unsigned int msgByteLength);
 
-void frameSynch(PTTPackage_Typedef * wpckg, int pttd_symbol);
+void frameSynch(PTTService_T * wpckg, int pttd_symbol);
 
-void readData(PTTPackage_Typedef * wpckg, int pttd_symbol);
+void readData(PTTService_T * wpckg, int pttd_symbol);
 
 int VgaGain (int tmp_amp);
 

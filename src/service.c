@@ -86,7 +86,7 @@ unsigned int calcMessageLength(unsigned int msgByteLength)
 #define MAX_SYNCH_SYMBOLS 128
 #define SYNCH_MIN_MASK 0x3FF
 #define SYNCH_PATTERN	0xFFFE2F
-void frameSynch(PTTPackage_Typedef * wpckg, int pttd_symbol)
+void frameSynch(PTTService_T * wpckg, int pttd_symbol)
 {
 	if (wpckg->total_symbol_cnt > MAX_SYNCH_SYMBOLS) { // synch failed
 		wpckg->status = PTT_ERROR;
@@ -121,7 +121,7 @@ void frameSynch(PTTPackage_Typedef * wpckg, int pttd_symbol)
 }
 
 #define MAX_SYMBOLS_PER_WINDOW 8
-void readData(PTTPackage_Typedef * wpckg, int pttd_symbol) 
+void readData(PTTService_T * wpckg, int pttd_symbol) 
 {
 	unsigned int i0;
 	unsigned int msgBitLength;

@@ -1,6 +1,6 @@
 #include "decoder.h"
 
-void clearDecoder(FreqsRecord_Typedef * PTT_DP_LIST,PTTPackage_Typedef * wpckg, mem_cic * str_cic, mem_cic * str_cicSmp, sampler_mem * str_smp, demod_mem * str_demod)
+void clearDecoder(FreqsRecord_T * PTT_DP_LIST,PTTService_T * wpckg, mem_cic * str_cic, mem_cic * str_cicSmp, sampler_mem * str_smp, demod_mem * str_demod)
 {
 	int i0;
 	str_smp->lutSign = 1;
@@ -61,66 +61,111 @@ void clearDecoder(FreqsRecord_Typedef * PTT_DP_LIST,PTTPackage_Typedef * wpckg, 
 	wpckg->symb_cnt = 0;
 }
 
-void UpdateTimeout(FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS], PTTPackage_Typedef * wpckg[NUMBER_OF_DECODERS])
+void UpdateTimeout(FreqsRecord_T * PTT_DP_LIST[NoD], PTTService_T * wpckg[NoD])
 {
-	int iCh;
-	for (iCh = 0; iCh < NUMBER_OF_DECODERS; iCh++) {
-		if (PTT_DP_LIST[iCh]->timeout == 1) { // frequency timeout
-			PTT_DP_LIST[iCh]->timeout = 0;
-			PTT_DP_LIST[iCh]->freq_amp = 0;
-			PTT_DP_LIST[iCh]->freq_idx = 0;
-			PTT_DP_LIST[iCh]->detect_state = FREQ_NONE;
-			wpckg[iCh]->status=PTT_FREE;
-//			printf("TO Clearing %d\n", iCh);
+	int dId;
+	for (dId = 0; dId < NoD; dId++) {
+		if (PTT_DP_LIST[dId]->timeout == 1) { // frequency timeout
+			PTT_DP_LIST[dId]->timeout = 0;
+			PTT_DP_LIST[dId]->freq_amp = 0;
+			PTT_DP_LIST[dId]->freq_idx = 0;
+			PTT_DP_LIST[dId]->detect_state = FREQ_NONE;
+			wpckg[dId]->status=PTT_FREE;
+//			printf("TO Clearing %d\n", dId);
 		} else {
-			PTT_DP_LIST[iCh]->timeout--;
+			PTT_DP_LIST[dId]->timeout--;
 		}
 	}
 }
-void bitDetection(FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS], PTTPackage_Typedef * wpckg[NUMBER_OF_DECODERS], demodArg_t * ptr)
+void bitDetection(FreqsRecord_T * PTT_DP_LIST[NoD], demodArg_t * ptr)
 {
-	int iCh,iSymb,i2;
-	for (iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
-		if(PTT_DP_LIST[iCh]->detect_state==FREQ_DECODING){
-//			printf("Starting bit detection process channel %d\n",iCh);
-//			pttA2Demod(inputSignal, ptr->InitFreq[iCh], ptr->vgaMant[iCh], ptr->vgaExp[iCh], ptr->str_demod[iCh], ptr->str_cic[iCh], ptr->str_cicSmp[iCh], ptr->str_smp[iCh]);
-
+	int dId,iSymb,i2;
+//	dId = rt_core_id();
+	for (dId=0;dId<NoD;dId++){
+		if(PTT_DP_LIST[dId]->detect_state==FREQ_DECODING){
+//			printf("Starting bit detection process channel %d\n",dId);
 			for(iSymb = 0;iSymb<nSymb;iSymb++){
-				if(ptr->str_demod[iCh]->symbLock[iSymb]){
-//					if(iCh!=1)
-//						printf("(%d) smb %d %d",iCh,ptr->str_demod[iCh]->symbOut[iSymb],ptr->str_demod[iCh]->symbLock[iSymb]);
-					wpckg[iCh]->total_symbol_cnt++;
-					if(wpckg[iCh]->status==PTT_FRAME_SYNCH){
-						frameSynch(wpckg[iCh],ptr->str_demod[iCh]->symbOut[iSymb]);   
-					}else if(wpckg[iCh]->status==PTT_DATA){
-						readData(wpckg[iCh],ptr->str_demod[iCh]->symbOut[iSymb]);
-						if(wpckg[iCh]->status==PTT_READY){
+				if(ptr->str_demod[dId]->symbLock[iSymb]){
+					ptr->wpckg[dId]->total_symbol_cnt++;
+					if(ptr->wpckg[dId]->status==PTT_FRAME_SYNCH){
+						frameSynch(ptr->wpckg[dId],ptr->str_demod[dId]->symbOut[iSymb]);   
+					}else if(ptr->wpckg[dId]->status==PTT_DATA){
+						readData(ptr->wpckg[dId],ptr->str_demod[dId]->symbOut[iSymb]);
+						if(ptr->wpckg[dId]->status==PTT_READY){
 //							fill the package and clear the decoder
-							//printf("Clearing decoder %d\n",iCh);
-//							clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], ptr->str_cic[iCh], ptr->str_cicSmp[iCh], ptr->str_smp[iCh], ptr->str_demod[iCh]);
-//							ptr->activeList--;
+							//printf("Clearing decoder %d\n",dId);
+//							clearDecoder(PTT_DP_LIST[dId],wpckg[dId], ptr->str_cic[dId], ptr->str_cicSmp[dId], ptr->str_smp[dId], ptr->str_demod[dId]);
+					ptr->activeList--;
                 //DEBUG Purpose                
 						}
-					}else if(wpckg[iCh]->status==PTT_ERROR){
-						printf("Clearing decoder %d\n",iCh);
-						clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], ptr->str_cic[iCh], ptr->str_cicSmp[iCh], ptr->str_smp[iCh], ptr->str_demod[iCh]);
+					}else if(ptr->wpckg[dId]->status==PTT_ERROR){
+						printf("Clearing decoder %d\n",dId);
+			//			clearDecoder(PTT_DP_LIST[dId],ptr->wpckg[dId], ptr->str_cic[dId], ptr->str_cicSmp[dId], ptr->str_smp[dId], ptr->str_demod[dId]);
 						ptr->activeList--;
 					}
 				}
 			}
 		}
-    }//END FOR SCROLLING CHANNELS
+	}//END FOR SCROLLING CHANNELS
+}
+/*
+
+int bitDetectionStep(decod_Arg * )
+{
+	for(iSymb = 0;iSymb<nSymb;iSymb++){
+		if(ptr->str_demod[rt_core_id()]->symbLock[iSymb]){
+			wpckg[rt_core_id()]->total_symbol_cnt++;
+			if(wpckg[rt_core_id()]->status==PTT_FRAME_SYNCH){
+				frameSynch(wpckg[rt_core_id()],ptr->str_demod[rt_core_id()]->symbOut[iSymb]);   
+			}else if(wpckg[rt_core_id()]->status==PTT_DATA){
+				readData(wpckg[rt_core_id()],ptr->str_demod[rt_core_id()]->symbOut[iSymb]);
+				if(wpckg[rt_core_id()]->status==PTT_READY){
+//					fill the package and clear the decoder
+					//printf("Clearing decoder %d\n",dId);
+//					clearDecoder(PTT_DP_LIST[dId],wpckg[dId], ptr->str_cic[dId], ptr->str_cicSmp[dId], ptr->str_smp[dId], ptr->str_demod[dId]);
+					ptr->activeList--;
+//DEBUG Purpose                
+				}
+			}else if(wpckg[rt_core_id()]->status==PTT_ERROR){
+				printf("Clearing decoder %d\n",dId);
+//				clearDecoder(PTT_DP_LIST[dId],wpckg[dId], ptr->str_cic[dId], ptr->str_cicSmp[dId], ptr->str_smp[dId], ptr->str_demod[dId]);
+				ptr->activeList--;
+			}
+		}
+	}
+	return 0;
 }
 
-//void decoder(int complex *inputSignal, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS], PTTPackage_Typedef * wpckg[NUMBER_OF_DECODERS], int * InitFreq, int * vgaMant, int * vgaExp, demod_mem * str_demod[NUMBER_OF_DECODERS], mem_cic * str_cic[NUMBER_OF_DECODERS], mem_cic * str_cicSmp[NUMBER_OF_DECODERS], sampler_mem * str_smp[NUMBER_OF_DECODERS])
-void decoder(int complex * inputSignal, demodArg_t * ptr, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS], PTTPackage_Typedef * wpckg[NUMBER_OF_DECODERS])
+void prlbitDetection(FreqsRecord_Typedef * PTT_DP_LIST[NoD], PTTPackage_Typedef * wpckg[NoD], demodArg_t * ptr)
+{
+	int dId,iSymb,i2;
+	int nActiveDecod = 1;
+	rt_team_fork(nActiveDecod,(void *)bitDetectionStep, (void *) bitD_Arg);
+//	printf("Starting bit detection process channel %d\n",dId)
+}
+*/
+//REORDER DECODERS DATA
+
+void decoder(int complex * inputSignal, demodArg_t * ptr, FreqsRecord_T * PTT_DP_LIST[NoD], PTTPackage_T * outputPckg[NoD])
 {
 
-	int iCh,i2,iSymb;
+	int dId,i2,iSymb,activeDecoders;
 	if(ptr->activeList>0){
-//		printf("activeList: %d\n",ptr->activeList);
+		activeDecoders = ptr->activeList;
+//		printf("activeList: %d\n",activeDecoders);
 		prlpttA2Demod(inputSignal, ptr);
-		bitDetection(PTT_DP_LIST, wpckg, ptr);
+//		rt_team_fork(activeDecoders, (void *) prlpttA2Demod,(void *) ptr);
+//		rt_team_fork(activeDecoders, (void *) bitDetection,(void *) ptr);
+		bitDetection(PTT_DP_LIST, ptr);
 	}
-
+	// Pass the package service to output package
+	for(dId=0;dId<NoD;++dId){
+		if(ptr->wpckg[dId]->status==PTT_READY){
+			outputPckg[dId]->status = ptr->wpckg[dId]->status;
+			outputPckg[dId]->carrierFreq = ptr->wpckg[dId]->carrierFreq;
+			outputPckg[dId]->carrierAbs = ptr->wpckg[dId]->carrierAbs;
+			outputPckg[dId]->msgByteLength = ptr->wpckg[dId]->msgByteLength;
+			memcpy(outputPckg[dId]->userMsg,ptr->wpckg[dId]->userMsg, outputPckg[dId]->msgByteLength*sizeof(int *));
+		}
+	}
 }

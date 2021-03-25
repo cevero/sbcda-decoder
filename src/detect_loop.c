@@ -10,7 +10,7 @@
 //#include "../lib/kiss_fft.h"
 //#include "../lib/_kiss_fft_guts.h"
 //int prevIdx[] = {[0 ... DFT_LENGTH-1]=0};
-//FreqsRecord_Typedef PTT_DP_LIST[NUMBER_OF_DECODERS];
+//FreqsRecord_Typedef PTT_DP_LIST[NoD];
 /* DDS_Mask
 *
 * This function calculates the detection mask that
@@ -29,20 +29,20 @@
 *
 */
 #define LEVELS
-void calc_mask(int * mask, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS])
+void calc_mask(int * mask, FreqsRecord_T * PTT_DP_LIST[NoD])
 {
   int hat_f, hat_f_left, hat_f_right, mask_cnt;
-  int i,i0;
+  int dId,i0;
   int gBand = 52;
   #ifdef LEVELS
   int hat_a,L1,L2,L3,cnt_band;
   #endif
 
-  for (i = 0; i < NUMBER_OF_DECODERS; i++){
-    if(PTT_DP_LIST[i]->detect_state != FREQ_NONE){
-      hat_f = PTT_DP_LIST[i]->freq_idx;
+  for (dId = 0; dId < NoD; dId++){
+    if(PTT_DP_LIST[dId]->detect_state != FREQ_NONE){
+      hat_f = PTT_DP_LIST[dId]->freq_idx;
       #ifdef LEVELS
-      hat_a = PTT_DP_LIST[i]->freq_amp;
+      hat_a = PTT_DP_LIST[dId]->freq_amp;
       L1 = 3*hat_a/32;
       L2 = hat_a/6;
       L3 = 2*hat_a;
@@ -79,7 +79,7 @@ void calc_mask(int * mask, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS]
 }
 //#define microFFT
 //#define kissFFT
-unsigned int detectLoop(int complex *inputSignal, int * prevIdx, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS])
+unsigned int detectLoop(int complex * inputSignal, int * prevIdx, FreqsRecord_T * PTT_DP_LIST[NoD])
 {
 
   int i, n, currIdx = 0, fft_time;
@@ -93,7 +93,7 @@ unsigned int detectLoop(int complex *inputSignal, int * prevIdx, FreqsRecord_Typ
   unsigned int nPass=0;
   int assigned_decoder = 0;
   /*save the window of signal in freq*/
-  PassSet_Typedef * passSet = rt_alloc(MEM_ALLOC,sizeof(PassSet_Typedef));
+  PassSet_T * passSet = rt_alloc(MEM_ALLOC,sizeof(PassSet_T));
   
   memset(passSet->Idx,0,sizeof(passSet->Idx));
   memset(passSet->Amp,0,sizeof(passSet->Amp));
@@ -145,7 +145,7 @@ unsigned int detectLoop(int complex *inputSignal, int * prevIdx, FreqsRecord_Typ
     while(peakAmp > 0 && assigned_decoder != FREQ_INVALID){
         assigned_decoder = FREQ_INVALID;
         //Loop for find decoder free
-        for (i = 0; i < NUMBER_OF_DECODERS; i++){
+        for (i = 0; i < NoD; i++){
             if(PTT_DP_LIST[i]->detect_state == FREQ_NONE){
   //             printf("Decoder free %d\n",i);
                assigned_decoder=i;
@@ -201,7 +201,7 @@ unsigned int detectLoop(int complex *inputSignal, int * prevIdx, FreqsRecord_Typ
     prevIdx[passSet->Idx[iPass]]=1;
   }
  
-  rt_free(MEM_ALLOC,passSet,sizeof(PassSet_Typedef));
+  rt_free(MEM_ALLOC,passSet,sizeof(PassSet_T));
   rt_free(MEM_ALLOC,mask,DFT_LENGTH*sizeof(int));
   return ret_value;
 }

@@ -7,8 +7,8 @@
                                     (int) (val | (0xFFFFFFFF<<(nbits-1)))
 #define TEST_SIGN_BIT(val, nbits)	((val & (0x00000001<<(nbits-1)))!=0)
 #define FREQ_NUMBER_OF_BITS									11
-#ifndef NUMBER_OF_DECODERS
-#define NUMBER_OF_DECODERS									12
+#ifndef NoD
+#define NoD									12
 #endif
 #define INSERT_FREQ_NEW 1
 #define FREQ_INVALID	-1
@@ -26,7 +26,7 @@ typedef struct {
 	unsigned int freq_amp;
 	unsigned int detect_state;
 	unsigned int timeout;
-} FreqsRecord_Typedef;
+} FreqsRecord_T;
 
 /*
 *	DDS_PassSet_Typedef assists in this processing
@@ -34,17 +34,17 @@ typedef struct {
 typedef struct {
 	unsigned int Idx[32];
 	unsigned int Amp[32];
-} PassSet_Typedef;
+} PassSet_T;
 
 typedef enum {
 	FREQ_NONE,//0
 	FREQ_DETECTED_TWICE,//1
 	FREQ_DECODING//2
-} FreqsState_Typedef;
+} FreqsState_T;
 
-void calc_mask(int * mask,FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS]);
+void calc_mask(int * mask,FreqsRecord_T * PTT_DP_LIST[NoD]);
 
-//unsigned int detectLoop(int complex *inputSignal,int * prevIdx, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS]);
+//unsigned int detectLoop(int complex *inputSignal,int * prevIdx, FreqsRecord_T * PTT_DP_LIST[NoD]);
 
-unsigned int detectLoop(int complex *inputSignal, int * prevIdx, FreqsRecord_Typedef * PTT_DP_LIST[NUMBER_OF_DECODERS]);
+unsigned int detectLoop(int complex * inputSignal, int * prevIdx, FreqsRecord_T * PTT_DP_LIST[NoD]);
 #endif
