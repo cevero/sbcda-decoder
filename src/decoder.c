@@ -80,7 +80,7 @@ void UpdateTimeout(FreqsRecord_T * PTT_DP_LIST[NoD], PTTService_T * wpckg[NoD])
 void bitDetection(FreqsRecord_T * PTT_DP_LIST[NoD], demodArg_t * ptr)
 {
 	int dId,iSymb,i2;
-//	dId = rt_core_id();
+	dId = rt_core_id();
 	for (dId=0;dId<NoD;dId++){
 		if(PTT_DP_LIST[dId]->detect_state==FREQ_DECODING){
 //			printf("Starting bit detection process channel %d\n",dId);
@@ -108,43 +108,34 @@ void bitDetection(FreqsRecord_T * PTT_DP_LIST[NoD], demodArg_t * ptr)
 		}
 	}//END FOR SCROLLING CHANNELS
 }
-/*
 
-int bitDetectionStep(decod_Arg * )
+void prllBitDetection(demodArg_t * ptr)
 {
+	int dId,iSymb,i2;
+	dId = rt_core_id();
+//	printf("Starting bit detection process channel %d\n",dId);
 	for(iSymb = 0;iSymb<nSymb;iSymb++){
-		if(ptr->str_demod[rt_core_id()]->symbLock[iSymb]){
-			wpckg[rt_core_id()]->total_symbol_cnt++;
-			if(wpckg[rt_core_id()]->status==PTT_FRAME_SYNCH){
-				frameSynch(wpckg[rt_core_id()],ptr->str_demod[rt_core_id()]->symbOut[iSymb]);   
-			}else if(wpckg[rt_core_id()]->status==PTT_DATA){
-				readData(wpckg[rt_core_id()],ptr->str_demod[rt_core_id()]->symbOut[iSymb]);
-				if(wpckg[rt_core_id()]->status==PTT_READY){
-//					fill the package and clear the decoder
-					//printf("Clearing decoder %d\n",dId);
+		if(ptr->str_demod[dId]->symbLock[iSymb]){
+			ptr->wpckg[dId]->total_symbol_cnt++;
+			if(ptr->wpckg[dId]->status==PTT_FRAME_SYNCH){
+				frameSynch(ptr->wpckg[dId],ptr->str_demod[dId]->symbOut[iSymb]);   
+			}else if(ptr->wpckg[dId]->status==PTT_DATA){
+				readData(ptr->wpckg[dId],ptr->str_demod[dId]->symbOut[iSymb]);
+				if(ptr->wpckg[dId]->status==PTT_READY){
+//				fill the package and clear the decoder
+				//printf("Clearing decoder %d\n",dId);
 //					clearDecoder(PTT_DP_LIST[dId],wpckg[dId], ptr->str_cic[dId], ptr->str_cicSmp[dId], ptr->str_smp[dId], ptr->str_demod[dId]);
 					ptr->activeList--;
-//DEBUG Purpose                
+//DEBUG Purpose                	
 				}
-			}else if(wpckg[rt_core_id()]->status==PTT_ERROR){
+			}else if(ptr->wpckg[dId]->status==PTT_ERROR){
 				printf("Clearing decoder %d\n",dId);
-//				clearDecoder(PTT_DP_LIST[dId],wpckg[dId], ptr->str_cic[dId], ptr->str_cicSmp[dId], ptr->str_smp[dId], ptr->str_demod[dId]);
+//				clearDecoder(PTT_DP_LIST[dId],ptr->wpckg[dId], ptr->str_cic[dId], ptr->str_cicSmp[dId], ptr->str_smp[dId], ptr->str_demod[dId]);
 				ptr->activeList--;
 			}
 		}
 	}
-	return 0;
 }
-
-void prlbitDetection(FreqsRecord_Typedef * PTT_DP_LIST[NoD], PTTPackage_Typedef * wpckg[NoD], demodArg_t * ptr)
-{
-	int dId,iSymb,i2;
-	int nActiveDecod = 1;
-	rt_team_fork(nActiveDecod,(void *)bitDetectionStep, (void *) bitD_Arg);
-//	printf("Starting bit detection process channel %d\n",dId)
-}
-*/
-//REORDER DECODERS DATA
 
 void decoder(int complex * inputSignal, demodArg_t * ptr, FreqsRecord_T * PTT_DP_LIST[NoD], PTTPackage_T * outputPckg[NoD])
 {
@@ -155,8 +146,8 @@ void decoder(int complex * inputSignal, demodArg_t * ptr, FreqsRecord_T * PTT_DP
 //		printf("activeList: %d\n",activeDecoders);
 		prlpttA2Demod(inputSignal, ptr);
 //		rt_team_fork(activeDecoders, (void *) prlpttA2Demod,(void *) ptr);
-//		rt_team_fork(activeDecoders, (void *) bitDetection,(void *) ptr);
-		bitDetection(PTT_DP_LIST, ptr);
+		rt_team_fork(activeDecoders, (void *) prllBitDetection,(void *) ptr);
+//		bitDetection(PTT_DP_LIST, ptr);
 	}
 	// Pass the package service to output package
 	for(dId=0;dId<NoD;++dId){
