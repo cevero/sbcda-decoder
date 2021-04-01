@@ -24,6 +24,7 @@ int pttA2DemodStep(demodArg_t * ptr)
 	int vgaExp;
 
 //	***************************************************************************
+	int dId = rt_core_id()+(NoC*ptr->nSeq);
 	int * inputBlockRe;
 	inputBlockRe = ptr->inputBlockRe[rt_core_id()];
 	int * inputBlockIm;
@@ -35,16 +36,16 @@ int pttA2DemodStep(demodArg_t * ptr)
 	sampler_mem * str_smp;
 
 	ncoTheta = ptr->ncoTheta[rt_core_id()];
-	ncoInitFreq = ptr->InitFreq[rt_core_id()];
-	vgaMant = ptr->vgaMant[rt_core_id()];
-	vgaExp = ptr->vgaExp[rt_core_id()];
-	p = (ptr->str_demod[rt_core_id()]);
-	str = (ptr->str_cic[rt_core_id()]);
-	str1 = (ptr->str_cicSmp[rt_core_id()]);
-	str_smp = (ptr->str_smp[rt_core_id()]);
+	ncoInitFreq = ptr->InitFreq[dId];
+	vgaMant = ptr->vgaMant[dId];
+	vgaExp = ptr->vgaExp[dId];
+	p = (ptr->str_demod[dId]);
+	str = (ptr->str_cic[dId]);
+	str1 = (ptr->str_cicSmp[dId]);
+	str_smp = (ptr->str_smp[dId]);
 //	***************************************************************************
-/*	if(rt_core_id()!=1)
-		printf("(%d) %d %d\n",rt_core_id(),inputBlockRe[0], inputBlockIm[0]);
+/*	if(dId!=1)
+		printf("(%d) %d %d\n",dId,inputBlockRe[0], inputBlockIm[0]);
 	return 0;
 */	iSymb = ptr->iSymb;
 	p->symbCount++;
@@ -72,8 +73,8 @@ int pttA2DemodStep(demodArg_t * ptr)
 //		cplxMult[i0] = floor(creal(cplxMult[i0]))+floor(cimag(cplxMult[i0]))*I;
 	}
 	
-/*	if(rt_core_id()!=1)
-		printf("(%d) %d %d\n",rt_core_id(),inputBlockRe[0], inputBlockIm[0]);
+/*	if(dId!=1)
+		printf("(%d) %d %d\n",dId,inputBlockRe[0], inputBlockIm[0]);
 	return 0;
 */
 	if(iSymb==0){
@@ -85,8 +86,8 @@ int pttA2DemodStep(demodArg_t * ptr)
 
 	cicFilter(inputBlockRe,inputBlockIm,str,mfSignalRe,mfSignalIm,deciRate,delayIdx,smplPerSymb);
 	
-/*	if(rt_core_id()!=1)
-		printf("(%d) %d %d\n",rt_core_id(),mfSignalRe[0], mfSignalIm[0]);
+/*	if(dId!=1)
+		printf("(%d) %d %d\n",dId,mfSignalRe[0], mfSignalIm[0]);
 	return 0;*/
 
 	/*
@@ -105,8 +106,8 @@ int pttA2DemodStep(demodArg_t * ptr)
 	*/
 	sampler(demodSignal, str_smp, str1);
 
-/*	if(rt_core_id()!=1){
-		printf("(%d) %d\n",rt_core_id(),str_smp->symbOut);
+/*	if(dId!=1){
+		printf("(%d) %d\n",dId,str_smp->symbOut);
 	}
 */
 	p->symbOut[iSymb] = str_smp->symbOut;
@@ -140,8 +141,8 @@ int pttA2DemodStep(demodArg_t * ptr)
 int prlpttA2Demod(int complex * inputSignal, demodArg_t * arg)
 {
 	int i0, iSymb;
-	int activeList = arg->activeList;
-
+	int activeList = (arg->activeList>NoC)? NoC-(arg->nSeq*(NoD-arg->activeList)):arg->activeList;
+	
 	for(i0=0;i0<activeList;++i0){
 		arg->inputBlockRe[i0] = rt_alloc(MEM_ALLOC,smplPerSymb*sizeof(int));
 		arg->inputBlockIm[i0] = rt_alloc(MEM_ALLOC,smplPerSymb*sizeof(int));

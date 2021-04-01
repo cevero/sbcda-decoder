@@ -1,4 +1,7 @@
-#include "Gap8.h" 
+#include "Gap8.h"
+#include "pulp.h"
+#include "pmu_driver.h"
+#include "pmu_driver.c"
 #include "rt/rt_api.h"
 #include "decoder.h"
 #include "inputSignalMin.h"
@@ -13,7 +16,7 @@
 
 static void mureceiver(PTTPackage_T * outputPckg[NoD])
 {
-	rt_freq_set(RT_FREQ_DOMAIN_CL,  175*MHz);
+
 //**************************GPIO Setup*****************************************
 	rt_padframe_profile_t *profile_gpio = rt_pad_profile_get("hyper_gpio");
 	if(profile_gpio == NULL){
@@ -146,7 +149,7 @@ for(n0=0; n0<NSIM;n0++){
 
 #ifndef DEBUG_DEMOD
 //		printf("Starting detection loop ! %d us\n", detect_time);
-		tmp0 =  detectLoop(inputSignal, prevIdx, PTT_DP_LIST);   
+		tmp0 =  detectLoop(inputSignal, prevIdx, PTT_DP_LIST);
 //		rt_gpio_set_pin_value(0,TRIGGER,0);
 
 //		Setup Parameters: Frequency, Gain, Controls status of pckg and Detect.
@@ -167,10 +170,10 @@ for(n0=0; n0<NSIM;n0++){
 		}
 #endif
 int A0;
-#ifdef DEBUG_DEMOD
+//#ifdef DEBUG_DEMOD
 //		DEBUG DEMOD AND DECOD PROCESSES  
 		if(nWind==1 && debug==0){
-			for(int iprl=2;iprl<2;++iprl){
+			for(int iprl=2;iprl<12;++iprl){
 				A0 = iprl%2;
 				PTT_DP_LIST[iprl]->detect_state = FREQ_DECODING;
 				PTT_DP_LIST[iprl]->freq_amp = PTT_DP_LIST[A0]->freq_amp;
@@ -184,15 +187,19 @@ int A0;
 				arg->wpckg[iprl]->status=PTT_FRAME_SYNCH;
 				arg->wpckg[iprl]->carrierFreq= PTT_DP_LIST[A0]->freq_idx;
 				arg->wpckg[iprl]->carrierAbs= PTT_DP_LIST[A0]->freq_amp;
-				arg->activeList = (arg->activeList<<1)|1;
+				arg->activeList++;
 			}
 		}
-#endif
-
+//#endif
+	int n10=(arg->activeList>NoC)? 1:0;
+//	printf("Seq %d activeList %d\n",n10, arg->activeList);
 //	rt_freq_set(RT_FREQ_DOMAIN_CL,  100*MHz);
 #ifndef DETECT_DEBUG
 //		decodes signals from active channels
+	for(int n00=0;n00<=n10;n00++){
+		arg->nSeq = n00;
 		decoder(inputSignal,arg, PTT_DP_LIST, outputPckg);
+	}
 //	rt_freq_set(RT_FREQ_DOMAIN_CL, 175*MHz);
 #endif 
 	}//END SCROLLING WINDOWS
@@ -251,13 +258,16 @@ static void end_of_call(void *arg)
 //	printf("[clusterID: 0x%x] MUR from core %d\n", rt_cluster_id(), rt_core_id());
 	done = 1;
 }
-
+#define FC_CLK 250
+#define CL_CLK 175
 int main()
 {
 //	rt_event_sched_t * p_sched = rt_event_internal_sched();
-
-	rt_freq_set(RT_FREQ_DOMAIN_FC,250*MHz);
-	printf("Entering main controller \n");
+//	rt_voltage_force(0,1100,NULL);
+	PMU_set_voltage(1000,0);
+	rt_freq_set(RT_FREQ_DOMAIN_FC,FC_CLK*MHz);
+	printf("Entering main controller\n");
+	printf("Clock settings: FC %d MHz CL: %d MHz\n",FC_CLK, CL_CLK);
 	int t_time = rt_time_get_us();  
 
 	if (rt_event_alloc(NULL, 4)) return -1;
@@ -265,6 +275,7 @@ int main()
 	rt_event_t *p_event = rt_event_get(NULL, end_of_call, (void *) CID);
 
 	rt_cluster_mount(MOUNT, CID, 0, NULL);
+	rt_freq_set(RT_FREQ_DOMAIN_CL,  CL_CLK*MHz);
 	
 	PTTPackage_T * outputPckg[NoD];
 	for(int dId=0;dId<NoD;dId++){

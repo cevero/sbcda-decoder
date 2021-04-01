@@ -80,8 +80,9 @@ void UpdateTimeout(FreqsRecord_T * PTT_DP_LIST[NoD], PTTService_T * wpckg[NoD])
 void bitDetection(FreqsRecord_T * PTT_DP_LIST[NoD], demodArg_t * ptr)
 {
 	int dId,iSymb,i2;
-	dId = rt_core_id();
-	for (dId=0;dId<NoD;dId++){
+	int A = (NoD/2)*ptr->nSeq;
+	int B = (NoD/2)*(1+ptr->nSeq);
+	for (dId=A;dId<B;dId++){
 		if(PTT_DP_LIST[dId]->detect_state==FREQ_DECODING){
 //			printf("Starting bit detection process channel %d\n",dId);
 			for(iSymb = 0;iSymb<nSymb;iSymb++){
@@ -111,8 +112,8 @@ void bitDetection(FreqsRecord_T * PTT_DP_LIST[NoD], demodArg_t * ptr)
 
 void prllBitDetection(demodArg_t * ptr)
 {
-	int dId,iSymb,i2;
-	dId = rt_core_id();
+	int iSymb,i2;
+	int dId = rt_core_id()+(NoC*ptr->nSeq);
 //	printf("Starting bit detection process channel %d\n",dId);
 	for(iSymb = 0;iSymb<nSymb;iSymb++){
 		if(ptr->str_demod[dId]->symbLock[iSymb]){
@@ -140,16 +141,17 @@ void prllBitDetection(demodArg_t * ptr)
 void decoder(int complex * inputSignal, demodArg_t * ptr, FreqsRecord_T * PTT_DP_LIST[NoD], PTTPackage_T * outputPckg[NoD])
 {
 
-	int dId,i2,iSymb,activeDecoders;
-	if(ptr->activeList>0){
-		activeDecoders = ptr->activeList;
+	int dId,i2,iSymb;
+	int activeList = (ptr->activeList>NoC)? NoC-(ptr->nSeq*(NoD-ptr->activeList)):ptr->activeList;
+	if(activeList>0){
 //		printf("activeList: %d\n",activeDecoders);
 		prlpttA2Demod(inputSignal, ptr);
 //		rt_team_fork(activeDecoders, (void *) prlpttA2Demod,(void *) ptr);
-		rt_team_fork(activeDecoders, (void *) prllBitDetection,(void *) ptr);
-//		bitDetection(PTT_DP_LIST, ptr);
+//		rt_team_fork(activeList, (void *) prllBitDetection,(void *) ptr);
+		bitDetection(PTT_DP_LIST, ptr);
 	}
 	// Pass the package service to output package
+	if((ptr->activeList>6 && ptr->nSeq==1) || ptr->activeList<=6){
 	for(dId=0;dId<NoD;++dId){
 		if(ptr->wpckg[dId]->status==PTT_READY){
 			outputPckg[dId]->status = ptr->wpckg[dId]->status;
@@ -158,5 +160,6 @@ void decoder(int complex * inputSignal, demodArg_t * ptr, FreqsRecord_T * PTT_DP
 			outputPckg[dId]->msgByteLength = ptr->wpckg[dId]->msgByteLength;
 			memcpy(outputPckg[dId]->userMsg,ptr->wpckg[dId]->userMsg, outputPckg[dId]->msgByteLength*sizeof(int *));
 		}
+	}
 	}
 }

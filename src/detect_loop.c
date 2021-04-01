@@ -106,7 +106,6 @@ unsigned int detectLoop(int complex * inputSignal, int * prevIdx, FreqsRecord_T 
   */
   
   for (n = 0; n < DFT_LENGTH; n++) {
-//    mask[n] = 500;
     if (n<WINDOW_LENGTH) {
       fftSignalRe[n] = (int) creal(inputSignal[n]);
       fftSignalIm[n] = (int) cimag(inputSignal[n]);
@@ -122,7 +121,7 @@ unsigned int detectLoop(int complex * inputSignal, int * prevIdx, FreqsRecord_T 
 
   int * mask = rt_alloc(MEM_ALLOC,DFT_LENGTH*sizeof(int));
   for (n = 0; n < DFT_LENGTH; n++)
-	  mask[n]=500;
+	  mask[n]=100;
   
   calc_mask(mask,PTT_DP_LIST);
   int abs;
@@ -138,7 +137,7 @@ unsigned int detectLoop(int complex * inputSignal, int * prevIdx, FreqsRecord_T 
             nPass++;
       }
   }
-  //	printf("nPass: %d\n",nPass);
+//	printf("nPass: %d\n",nPass);
   rt_free(MEM_ALLOC,fftSignalRe,DFT_LENGTH*sizeof(short));
   rt_free(MEM_ALLOC,fftSignalIm,DFT_LENGTH*sizeof(short));
 

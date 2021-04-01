@@ -29,7 +29,7 @@
 #endif
 
 #ifndef NoC
-#define NoC (8)
+#define NoC (6)
 #endif
 
 #define smplPerSymb  (160)//samples per symbol rate
@@ -50,6 +50,7 @@ typedef struct demodArg{
 	int * vgaExp;
 	int iSymb;
 	int activeList;
+	short nSeq;
 	PTTService_T * wpckg[NoD];
 	demod_mem * str_demod[NoD];
 	mem_cic * str_cic[NoD];
