@@ -7,9 +7,6 @@
                                     (int) (val | (0xFFFFFFFF<<(nbits-1)))
 #define TEST_SIGN_BIT(val, nbits)	((val & (0x00000001<<(nbits-1)))!=0)
 #define FREQ_NUMBER_OF_BITS	11
-#ifndef NoD
-#define NoD			12
-#endif
 #define INSERT_FREQ_NEW 	1
 #define FREQ_INVALID		-1
 #define N_SAMPLE 		(8192)
@@ -18,6 +15,9 @@
 #define DEFAULT_AMP_THRESHOLD	(100)
 #define DEFAULT_TIMEOUT 	(101)
 #define WINDOW_LENGTH 		(1280)
+#ifndef NoD
+#define NoD 12
+#endif
 /*	DDS_FreqsRecord_Typedef will be passed to the next processing
 */
 

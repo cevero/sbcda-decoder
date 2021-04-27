@@ -151,7 +151,7 @@ for(n0=0; n0<NSIM;n0++){
 //		printf("Starting detection loop ! %d us\n", detect_time);
 		tmp0 =  detectLoop(inputSignal, prevIdx, PTT_DP_LIST);
 //		rt_gpio_set_pin_value(0,TRIGGER,0);
-
+//printf("finish detection\n");
 //		Setup Parameters: Frequency, Gain, Controls status of pckg and Detect.
 		for (dId=0;dId<2;dId++){
 			if(PTT_DP_LIST[dId]->detect_state==FREQ_DETECTED_TWICE){
@@ -173,7 +173,7 @@ int A0;
 //#ifdef DEBUG_DEMOD
 //		DEBUG DEMOD AND DECOD PROCESSES  
 		if(nWind==1 && debug==0){
-			for(int iprl=2;iprl<12;++iprl){
+			for(int iprl=2;iprl<2;++iprl){
 				A0 = iprl%2;
 				PTT_DP_LIST[iprl]->detect_state = FREQ_DECODING;
 				PTT_DP_LIST[iprl]->freq_amp = PTT_DP_LIST[A0]->freq_amp;

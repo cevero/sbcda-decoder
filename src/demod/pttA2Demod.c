@@ -141,7 +141,7 @@ int pttA2DemodStep(demodArg_t * ptr)
 int prlpttA2Demod(int complex * inputSignal, demodArg_t * arg)
 {
 	int i0, iSymb;
-	int activeList = (arg->activeList>NoC)? NoC-(arg->nSeq*(NoD-arg->activeList)):arg->activeList;
+	int activeList = (arg->activeList>NoC)? NoC-(arg->nSeq*(NoD-arg->activeList+(2*NoC-NoD))):arg->activeList;
 	
 	for(i0=0;i0<activeList;++i0){
 		arg->inputBlockRe[i0] = rt_alloc(MEM_ALLOC,smplPerSymb*sizeof(int));

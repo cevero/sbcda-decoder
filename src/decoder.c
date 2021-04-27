@@ -80,8 +80,8 @@ void UpdateTimeout(FreqsRecord_T * PTT_DP_LIST[NoD], PTTService_T * wpckg[NoD])
 void bitDetection(FreqsRecord_T * PTT_DP_LIST[NoD], demodArg_t * ptr)
 {
 	int dId,iSymb,i2;
-	int A = (NoD/2)*ptr->nSeq;
-	int B = (NoD/2)*(1+ptr->nSeq);
+	int A = NoC*ptr->nSeq;
+	int B = (ptr->nSeq==0)? NoC:NoD;
 	for (dId=A;dId<B;dId++){
 		if(PTT_DP_LIST[dId]->detect_state==FREQ_DECODING){
 //			printf("Starting bit detection process channel %d\n",dId);
@@ -142,7 +142,7 @@ void decoder(int complex * inputSignal, demodArg_t * ptr, FreqsRecord_T * PTT_DP
 {
 
 	int dId,i2,iSymb;
-	int activeList = (ptr->activeList>NoC)? NoC-(ptr->nSeq*(NoD-ptr->activeList)):ptr->activeList;
+	int activeList = (ptr->activeList>NoC)? NoC-(ptr->nSeq*(NoD-ptr->activeList+(2*NoC-NoD))):ptr->activeList;
 	if(activeList>0){
 //		printf("activeList: %d\n",activeDecoders);
 		prlpttA2Demod(inputSignal, ptr);
@@ -151,7 +151,7 @@ void decoder(int complex * inputSignal, demodArg_t * ptr, FreqsRecord_T * PTT_DP
 		bitDetection(PTT_DP_LIST, ptr);
 	}
 	// Pass the package service to output package
-	if((ptr->activeList>6 && ptr->nSeq==1) || ptr->activeList<=6){
+	if((ptr->activeList>NoC && ptr->nSeq==1) || ptr->activeList<=NoC){
 	for(dId=0;dId<NoD;++dId){
 		if(ptr->wpckg[dId]->status==PTT_READY){
 			outputPckg[dId]->status = ptr->wpckg[dId]->status;

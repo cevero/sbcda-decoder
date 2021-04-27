@@ -29,7 +29,7 @@
 #endif
 
 #ifndef NoC
-#define NoC (6)
+#define NoC (8)
 #endif
 
 #define smplPerSymb  (160)//samples per symbol rate
