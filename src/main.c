@@ -6,13 +6,26 @@
 #include "../lib/_kiss_fft_guts.h"
 #include "service.h"
 #define NUMBER_OF_SAMPLES 47360 
+#define TRIGGER (17)
 int main()
 {
-  rt_freq_set(RT_FREQ_DOMAIN_FC,200000000);
+  rt_freq_set(RT_FREQ_DOMAIN_FC,250000000);
+  rt_padframe_profile_t *profile_gpio = rt_pad_profile_get("hyper_gpio");
+  if(profile_gpio == NULL){
+	  printf("pad config error\n");
+	  return 1;
+  }
+  rt_padframe_set(profile_gpio);
+  //GPIO INIT
+  rt_gpio_init(0, TRIGGER);
+  //CONFIG TRIGGER PIN AS OUTPUT
+  rt_gpio_set_dir(0,1<<TRIGGER,RT_GPIO_IS_OUT);
+  //SET TRIGGER
+  rt_gpio_set_pin_value(0,TRIGGER,1);
   int n0;
-  printf("--------> Loading Input Signal %d <-------\n\n",rt_freq_get(RT_FREQ_DOMAIN_FC));
+//  printf("--------> Loading Input Signal %d <-------\n\n",rt_freq_get(RT_FREQ_DOMAIN_FC));
  //int complex input [1280*36];
- printf("--------> Finish Load Input Signal <-------\n\n");   
+// printf("--------> Finish Load Input Signal <-------\n\n");   
    
   //sampler memory
   int i;
@@ -65,13 +78,14 @@ int main()
 	  prevIdx[i]=0;
   }
 
-  printf("***------------ ALL READY --------------***\n");
+//  printf("***------------ ALL READY --------------***\n");
   int complex *inputSignal = rt_alloc(MEM_ALLOC,WINDOW_LENGTH*sizeof(int complex));
   int tmp0=0,f=0,iCh,vga, activeList, nWind, spWind,iSymb,i2;
   int * vgaExp = rt_alloc(MEM_ALLOC,NUMBER_OF_DECODERS*sizeof(int));
   int * vgaMant = rt_alloc(MEM_ALLOC,NUMBER_OF_DECODERS*sizeof(int));
   int * InitFreq = rt_alloc(MEM_ALLOC,NUMBER_OF_DECODERS*sizeof(int));
   int detect_time=0, demod_time=0, decod_time=0, total_time=0,aux_time, decod_per_channel=0;
+  int avg_detect_time=0, avg_decod_time=0;
 #ifdef DEBUG_DEMOD
   int debug = 0;
 #endif
@@ -89,7 +103,7 @@ for(i=0;i<DFT_LENGTH/2;i++){//				     -*
 //  cfg = kiss_fft_alloc(DFT_LENGTH,0,NULL,NULL);
 
   for(iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
-    printf("Clearing decoder %d\n",iCh);
+//    printf("Clearing decoder %d\n",iCh);
     clearDecoder(PTT_DP_LIST[iCh],wpckg[iCh], str_cic[iCh], str_cicSmp[iCh], str_smp[iCh], str_demod[iCh]);
   }
 
@@ -104,7 +118,7 @@ for(i=0;i<DFT_LENGTH/2;i++){//				     -*
 for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
 	aux_time = rt_time_get_us();
 //  for (nWind=0;nWind<2;nWind++){ //DEBUG DETECT PROCESS
-    printf("***--------- Window processing ---------*** [%d]\n", nWind);
+//    printf("***--------- Window processing ---------*** [%d]\n", nWind);
     
     // Performs input partitioning on the windows of 1280 samples
     memcpy(inputSignal,inputSignalMin+WINDOW_LENGTH*nWind,1280*sizeof(int complex));
@@ -115,7 +129,7 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
 	    printf("L %d %d\n",inputSignal[WINDOW_LENGTH-1]);
     }*/
 
-   printf("Updating Timeout !\n");
+//   printf("Updating Timeout !\n");
 
    UpdateTimeout(PTT_DP_LIST,wpckg);
   
@@ -125,18 +139,19 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
    tmp0 =  detectLoop(inputSignal, prevIdx, PTT_DP_LIST);
    
    detect_time = rt_time_get_us()-detect_time;
-   printf("Detect: %d us\n",detect_time);
+   avg_detect_time = avg_detect_time+detect_time;
+//   printf("Detect: %d us\n",detect_time);
    //DEBUG Purpose
    if(tmp0){
-     printf("New PTT(s) detected!\nStatus of all decoders:\n");
+//     printf("New PTT(s) detected!\nStatus of all decoders:\n");
      for(iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
-       printf("ch:%d state: %d freq: %4d amp: %4d\n",iCh,PTT_DP_LIST[iCh]->detect_state, PTT_DP_LIST[iCh]->freq_idx, PTT_DP_LIST[iCh]->freq_amp);
+//       printf("ch:%d state: %d freq: %4d amp: %4d\n",iCh,PTT_DP_LIST[iCh]->detect_state, PTT_DP_LIST[iCh]->freq_idx, PTT_DP_LIST[iCh]->freq_amp);
      }
      tmp0=0;
    } 
 
     //Setup Parameters: Frequency, Gain, Controls status of pckg and Detect.
-    for (iCh=0;iCh<NUMBER_OF_DECODERS;iCh++){
+    for (iCh=0;iCh<1;iCh++){
       if(PTT_DP_LIST[iCh]->detect_state==FREQ_DETECTED_TWICE){
         vga = VgaGain(PTT_DP_LIST[iCh]->freq_amp);
         vgaExp[iCh] = -1*(vga&0x3F);
@@ -159,7 +174,7 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
 	vgaExp[0] = -1*(vga&0x3F);
 	vgaMant[0] = (vga>>6)&0xFF;
 	InitFreq[0] = PTT_DP_LIST[0]->freq_idx<<9;
-        printf("[%d]: mant %d exp %d\n",0, vgaMant[0],vgaExp[0]);
+//        printf("[%d]: mant %d exp %d\n",0, vgaMant[0],vgaExp[0]);
         wpckg[0]->status=PTT_FRAME_SYNCH;
 	PTT_DP_LIST[1]->detect_state = FREQ_DECODING;
 	PTT_DP_LIST[1]->freq_amp = 787;
@@ -169,7 +184,7 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
 	vgaExp[1] = -1*(vga&0x3F);
 	vgaMant[1] = (vga>>6)&0xFF;
 	InitFreq[1] = PTT_DP_LIST[1]->freq_idx<<9;
-        printf("[%d]: mant %d exp %d\n",0, vgaMant[1],vgaExp[1]);
+//        printf("[%d]: mant %d exp %d\n",0, vgaMant[1],vgaExp[1]);
         wpckg[1]->status=PTT_FRAME_SYNCH;
     }
 #endif
@@ -211,13 +226,14 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
           }
         }
      	decod_per_channel= rt_time_get_us()-decod_per_channel;
-	printf("decod_time %d: %d us\n",iCh,decod_per_channel);
+	avg_decod_time = avg_decod_time+decod_per_channel;
+//	printf("decod_time %d: %d us\n",iCh,decod_per_channel);
       }
     }//END FOR SCROLLING CHANNELS
     
   }//END FOR SCROLLING WINDOWS
-  total_time = rt_time_get_us()-aux_time;
-  printf("total time %d\n",total_time/1000);
+
+//  printf("total time %d\n",total_time/1000);
   }//END FOR NSIM 
 
   rt_free(MEM_ALLOC,prevIdx,DFT_LENGTH*sizeof(int));
@@ -241,8 +257,10 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
     rt_free(MEM_ALLOC,str_demod[i]->symbOut,nSymb*sizeof(int));
     rt_free(MEM_ALLOC,str_demod[i],sizeof(demod_mem));    
   }
-
-  printf("---------------> Check <-------------------\n\n");  
+  rt_gpio_set_pin_value(0,TRIGGER,0);
+  total_time = rt_time_get_us()-aux_time;  
+  printf("avg detect_time: %d us\navg decode_time: %dus\nTotal: %d us\n",avg_detect_time/37,(avg_decod_time)/37,total_time);
+//  printf("---------------> Check <-------------------\n\n");  
   return 0;
 }
 
