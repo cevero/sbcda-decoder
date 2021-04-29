@@ -90,7 +90,7 @@ void frameSynch(PTTService_T * wpckg, int pttd_symbol)
 {
 	if (wpckg->total_symbol_cnt > MAX_SYNCH_SYMBOLS) { // synch failed
 		wpckg->status = PTT_ERROR;
-		printf("FS FAIL\n\n");
+//		printf("FS FAIL\n\n");
 	} else {
 		wpckg->symb_array[0] = wpckg->symb_array[1]; // previous
 		wpckg->symb_array[1] = pttd_symbol; // current

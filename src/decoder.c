@@ -100,7 +100,7 @@ void bitDetection(FreqsRecord_T * PTT_DP_LIST[NoD], demodArg_t * ptr)
                 //DEBUG Purpose                
 						}
 					}else if(ptr->wpckg[dId]->status==PTT_ERROR){
-						printf("Clearing decoder %d\n",dId);
+			//		printf("Clearing decoder %d\n",dId);
 			//			clearDecoder(PTT_DP_LIST[dId],ptr->wpckg[dId], ptr->str_cic[dId], ptr->str_cicSmp[dId], ptr->str_smp[dId], ptr->str_demod[dId]);
 						ptr->activeList--;
 					}

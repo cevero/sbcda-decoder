@@ -29,6 +29,8 @@ static void mureceiver(PTTPackage_T * outputPckg[NoD])
 	rt_gpio_init(0,TRIGGER);
 //	Config TRIGGER pin as an output
 	rt_gpio_set_dir(0,1<<TRIGGER, RT_GPIO_IS_OUT);
+
+//	SET TRIGGER
 	rt_gpio_set_pin_value(0,TRIGGER,1);
 
 //**********************Variables Allocation************************************
@@ -123,7 +125,7 @@ static void mureceiver(PTTPackage_T * outputPckg[NoD])
 	}
 #endif
 
-#define NSIM (1)
+#define NSIM (30)
   
 for(n0=0; n0<NSIM;n0++){
 //printf("N_SIM = %d\n",n0);
@@ -205,6 +207,7 @@ int A0;
 	}//END SCROLLING WINDOWS
 }//END FOR NSIM
 	
+//	UNSET TRIGGER
 	rt_gpio_set_pin_value(0,TRIGGER,0);
 
 	rt_free(MEM_ALLOC,prevIdx,DFT_LENGTH*sizeof(int));
