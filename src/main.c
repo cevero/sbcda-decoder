@@ -330,7 +330,7 @@ int main()
 {
 //  rt_event_sched_t * p_sched = rt_event_internal_sched();
   
-  rt_freq_set(RT_FREQ_DOMAIN_FC,200000000);
+  rt_freq_set(RT_FREQ_DOMAIN_FC,250000000);
   printf("Entering main controller \n");
   int t_time = rt_time_get_us();  
 
