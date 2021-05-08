@@ -125,7 +125,7 @@ static void mureceiver(PTTPackage_T * outputPckg[NoD])
 	}
 #endif
 
-#define NSIM (30)
+#define NSIM (1)
   
 for(n0=0; n0<NSIM;n0++){
 //printf("N_SIM = %d\n",n0);
@@ -195,14 +195,14 @@ int A0;
 //#endif
 	int n10=(arg->activeList>NoC)? 1:0;
 //	printf("Seq %d activeList %d\n",n10, arg->activeList);
-//	rt_freq_set(RT_FREQ_DOMAIN_CL,  100*MHz);
+//	rt_freq_set(RT_FREQ_DOMAIN_CL,  175*MHz);
 #ifndef DETECT_DEBUG
 //		decodes signals from active channels
 	for(int n00=0;n00<=n10;n00++){
 		arg->nSeq = n00;
 		decoder(inputSignal,arg, PTT_DP_LIST, outputPckg);
 	}
-//	rt_freq_set(RT_FREQ_DOMAIN_CL, 175*MHz);
+//	rt_freq_set(RT_FREQ_DOMAIN_CL, 120*MHz);
 #endif 
 	}//END SCROLLING WINDOWS
 }//END FOR NSIM
@@ -267,7 +267,7 @@ int main()
 {
 //	rt_event_sched_t * p_sched = rt_event_internal_sched();
 //	rt_voltage_force(0,1100,NULL);
-	PMU_set_voltage(1000,0);
+//	PMU_set_voltage(1000,0);
 	rt_freq_set(RT_FREQ_DOMAIN_FC,FC_CLK*MHz);
 	printf("Entering main controller\n");
 	printf("Clock settings: FC %d MHz CL: %d MHz\n",FC_CLK, CL_CLK);
