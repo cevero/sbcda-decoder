@@ -90,9 +90,9 @@ static void mureceiver(void *arg)
   int * vgaMant = rt_alloc(MEM_ALLOC,NUMBER_OF_DECODERS*sizeof(int));
   int * InitFreq = rt_alloc(MEM_ALLOC,NUMBER_OF_DECODERS*sizeof(int));
   int detect_time=0, demod_time=0, decod_time=0, total_time=0,aux_time, decod_per_channel=0;
-#ifdef DEBUG_DEMOD
+//#ifdef DEBUG_DEMOD
   int debug = 0;
-#endif
+//#endif
 
 /*
 //Calculate LUT for fft computation---------------------------*
@@ -169,7 +169,7 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
      tmp0=0;
    }
     //Setup Parameters: Frequency, Gain, Controls status of pckg and Detect.
-    for (iCh=0;iCh<1;iCh++){
+    for (iCh=0;iCh<2;iCh++){
       if(PTT_DP_LIST[iCh]->detect_state==FREQ_DETECTED_TWICE){
         vga = VgaGain(PTT_DP_LIST[iCh]->freq_amp);
         vgaExp[iCh] = -1*(vga&0x3F);
@@ -182,31 +182,26 @@ for (nWind=0;nWind<NUMBER_OF_SAMPLES/WINDOW_LENGTH;nWind++){
     }
 #endif
 
-#ifdef DEBUG_DEMOD
+//#ifdef DEBUG_DEMOD
+int A0;
    // DEBUG DEMOD AND DECOD PROCESSES  
     if(nWind==1 && debug==0){
-	PTT_DP_LIST[0]->detect_state = FREQ_DECODING;
-	PTT_DP_LIST[0]->freq_amp = 793;
-	PTT_DP_LIST[0]->freq_idx = 1788;
-	PTT_DP_LIST[0]->timeout = 100;
-	vga = VgaGain(PTT_DP_LIST[0]->freq_amp);
-	vgaExp[0] = -1*(vga&0x3F);
-	vgaMant[0] = (vga>>6)&0xFF;
-	InitFreq[0] = PTT_DP_LIST[0]->freq_idx<<9;
- //       printf("[%d]: mant %d exp %d\n",0, vgaMant[0],vgaExp[0]);
-        wpckg[0]->status=PTT_FRAME_SYNCH;
-	PTT_DP_LIST[1]->detect_state = FREQ_DECODING;
-	PTT_DP_LIST[1]->freq_amp = 787;
-	PTT_DP_LIST[1]->freq_idx = 397;
-	PTT_DP_LIST[1]->timeout = 100;
-	vga = VgaGain(PTT_DP_LIST[1]->freq_amp);
-	vgaExp[1] = -1*(vga&0x3F);
-	vgaMant[1] = (vga>>6)&0xFF;
-	InitFreq[1] = PTT_DP_LIST[1]->freq_idx<<9;
-        //printf("[%d]: mant %d exp %d\n",0, vgaMant[1],vgaExp[1]);
-        wpckg[1]->status=PTT_FRAME_SYNCH;
+	for(int iConc=2;iConc<12;++iConc){
+		A0 = iConc%2;
+		PTT_DP_LIST[iConc]->detect_state = FREQ_DECODING;
+		PTT_DP_LIST[iConc]->freq_amp = PTT_DP_LIST[A0]->freq_amp;
+		PTT_DP_LIST[iConc]->freq_idx = PTT_DP_LIST[A0]->freq_idx;
+		PTT_DP_LIST[iConc]->timeout = 100;
+		vga = VgaGain(PTT_DP_LIST[iConc]->freq_amp);
+		vgaExp[iConc] = -1*(vga&0x3F);
+		vgaMant[iConc] = (vga>>6)&0xFF;
+		InitFreq[iConc] = PTT_DP_LIST[iConc]->freq_idx<<9;
+        	wpckg[iConc]->status=PTT_FRAME_SYNCH;
+//	     	printf("[%d]: mant %d exp %d\n",iConc, vgaMant[iConc],vgaExp[iConc]);
+	}
+
     }
-#endif
+//#endif
 
 //#ifndef DETECT_DEBUG
     //decodes signals from active channels

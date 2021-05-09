@@ -17,7 +17,7 @@ em.measurement_params[1]['vref'] = 2.946
 
 em.enableMeasurementPoint(M_POINT)
 first = True
-print "timestamp,time,energy,avg_power,avg_current,avg_voltage"
+print "time,energy,avg_power,avg_current,avg_voltage"
 while True:
     em.setTrigger("PA0", 1)
 
@@ -39,7 +39,7 @@ while True:
         # print title[:-1]
         # first = False
     # print datetime.now().strftime('%Y-%m-%d %H:%M:%S') + output[:-1]
-    print datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ',' + str(m.time) + ',' + str(m.energy) + ',' + str(m.avg_power) + ',' + str(m.avg_current) + ',' + str(m.avg_voltage)
+    print str(m.time) + ',' + str(m.energy) + ',' + str(m.avg_power) + ',' + str(m.avg_current) + ',' + str(m.avg_voltage)
     sys.stdout.flush()
     # print em.measurement_params[M_POINT]
 
