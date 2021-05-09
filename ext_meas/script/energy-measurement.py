@@ -39,7 +39,7 @@ while True:
         # print title[:-1]
         # first = False
     # print datetime.now().strftime('%Y-%m-%d %H:%M:%S') + output[:-1]
-    print datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ',' + str(m.time) + ',' + str(m.energy) + ',' + str(m.avg_power) + ',' + str(m.avg_current) + ',' + str(m.avg_voltage)
+    print str(m.time) + ',' + str(m.energy) + ',' + str(m.avg_power) + ',' + str(m.avg_current) + ',' + str(m.avg_voltage)
     sys.stdout.flush()
     # print em.measurement_params[M_POINT]
 
